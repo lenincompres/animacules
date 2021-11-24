@@ -1,25 +1,11 @@
 const USE_MOUSE = true;
 
-const TYPE = {
-  BULLET: 'bullet',
-  FOOD: ' food',
-  AGENT: 'agent'
-}
-const TRAIT = {
-  SPIKES: 'spike',
-  HYPE: 'hyper',
-  GUN: 'gun',
-  BOMB: 'bomb',
-  BLAST: 'blast'
-}
-
 // Video
 let video;
 let poseNet;
 let poses = [];
 let pause = false;
 
-let anims = [];
 let foods = [];
 let agents = [];
 let t = 0;
@@ -33,22 +19,24 @@ const SPEED = 600 / 1000;
 let world = WORLD;
 
 function loadWorld(n = 0) {
-  if(!worlds[n]) return setPrompt({
+  if (!worlds[n]) return setPrompt({
     h2: "I'm done!",
     p: "That was the last level."
   });
   pause = true;
 
-  anims = [];
   world = worlds[0];
+  pearl = new Pearl({});
+  anims = [pearl];
+  foods = [];
+  agents = [];
   if (n) Object.assign(world, worlds[n]);
-  addPearl();
 
-  if (world.food) world.food.forEach(opt => anims.push(new Drop(opt)));
-  if (world.anims) world.anims.forEach(opt => anims.push(new Animacule(opt)));
+  if (world.food) world.food.forEach(opt => new Drop(opt));
+  if (world.anims) world.anims.forEach(opt => new Animacule(opt));
 
   setPrompt(world.prompt);
-  
+
   currentworld = n;
   pause = false;
   t = 0;
@@ -60,7 +48,7 @@ function setup() {
     title: 'Animacules - Game',
     fontSize: '20pt',
     textAlign: 'center',
-    backgroundColor: 'aliceBlue',
+    backgroundColor: '#def',
     header: {
       color: 'black',
       fontFamily: 'fantasy',
@@ -72,15 +60,17 @@ function setup() {
       margin: '0 auto',
       canvas: createCanvas(world.w, world.h),
       aside: {
-        id: 'promptElem',
-        width: 'calc(100% - 4em)',
-        fontFamily: 'fantasy',
+        div: {
+          id: 'promptElem',
+          margin: '2em',
+          fontFamily: 'fantasy',
+          transition: '0.5s',
+          opacity: 0,
+        },
+        width: '100%',
         position: 'absolute',
-        transition: '0.5s',
-        opacity: 0,
         top: 0,
         left: 0,
-        margin: '2em',
         color: 'white'
       }
     },
@@ -175,22 +165,13 @@ function mouseClicked() {
 
 function fireBullet(angle) {}
 
-function addPearl() {
-  pearl = new Animacule({
-    x: world.w2,
-    y: world.h2,
-    z: world.h * world.w / 100,
-    color: 'royalBlue',
-    speed: SPEED
-  });
-  anims.push(pearl);
-}
-
-function addFood(n = 1) {
+function addFood(traits = []) {
   if (typeof world.foodcap === 'number' && foods.length >= world.foodcap) return;
-  if (!n) return;
-  anims.push(new Drop({}));
-  addFood(n - 1);
+  let drop = new Drop();
+  drop.traits = traits;
+  if(world.boostrate && random(world.foodcap) < world.boostrate) drop.traits.push(TRAIT.BOOST);
+  if(world.spiketrate && random(world.foodcap) < world.spiketrate) drop.traits.push(TRAIT.SPIKE);
+  if(world.shottrate && random(world.foodcap) < world.shottrate) drop.traits.push(TRAIT.SHOT);
 }
 
 // Get a prediction for the current video frame

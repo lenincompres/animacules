@@ -18,7 +18,8 @@ let worlds = [WORLD,
     heat: 0,
     food: [{
       x: WORLD.w2,
-      y: WORLD.h - 100
+      y: WORLD.h - 100,
+      traits: [TRAIT.BOOST]
     }],
     goal: {
       size: 3900,
@@ -28,7 +29,7 @@ let worlds = [WORLD,
   {
     prompt: {
       h2: 'Gotta be big.',
-      p: 'Nothing else to do, but eat and <b>get really big</b>?',
+      p: 'Nothing else to do, but eat and <b>get big</b>?',
     },
     heat: 0,
     goal: {
@@ -106,6 +107,9 @@ let worlds = [WORLD,
     }
   }, {
     foodcap: 4,
+    spikerate: 1,
+    boostrate: 1,
+    shottrate: 1,
     anims: [
       {
         x: 0,
