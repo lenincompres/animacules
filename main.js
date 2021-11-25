@@ -10,7 +10,8 @@ let foods = [];
 let agents = [];
 let t = 0;
 let currentworld = 0;
-
+let pointer;
+let dest;
 let pearl = {};
 
 //Constances
@@ -25,7 +26,7 @@ function loadWorld(n = 0) {
   });
   pause = true;
 
-  world = worlds[0];
+  world = Object.assign({}, worlds[0]);
   pearl = new Pearl({});
   anims = [pearl];
   foods = [];
@@ -44,6 +45,9 @@ function loadWorld(n = 0) {
 
 function setup() {
 
+  dest = createVector(WORLD.w2, WORLD.h2);
+  pointer = createVector(0,0);
+
   DOM.set({
     title: 'Animacules - Game',
     fontSize: '20pt',
@@ -58,7 +62,7 @@ function setup() {
       position: 'relative',
       width: world.w + 'px',
       margin: '0 auto',
-      canvas: createCanvas(world.w, world.h),
+      canvas: createCanvas(WORLD.w, WORLD.h),
       aside: {
         div: {
           id: 'promptElem',
@@ -105,7 +109,7 @@ function setup() {
 
   loadWorld(1);
 
-  frameRate(30);
+  frameRate(24);
 }
 
 function draw() {
@@ -115,18 +119,25 @@ function draw() {
   const flippedVideo = ml5.flipImage(video);
   image(flippedVideo, 0, 0, world.w, world.h);
 
-  fill(0, 0.68);
+  colorMode(HSL);
   noStroke();
-  rect(0, 0, world.w, world.h);
+  fill(0, 0.68);
+  rect(0, 0, WORLD.w, WORLD.h);
 
-  var target = !USE_MOUSE && poses[0] ? poses[0].pose.nose : {
-    x: mouseX,
-    y: mouseY
-  };
-  if (!USE_MOUSE) target.x = world.w - target.x;
-  target = createVector(target.x, target.y).sub(pearl.pos);
-  target = vectorMap(target, pearl.r, pearl.speed);
-  pearl.acc = target;
+  if (USE_MOUSE) {
+    dest = {
+      x: mouseX,
+      y: mouseY
+    };
+    pointer = pearl.vel;
+  } else if (poses[0]) {
+    dest = poses[0].pose.nose;
+    dest.x = world.w - dest.x;
+    pointer = poses[0].pose.rightWrist;
+    pointer.x = world.w - pointer.x;
+  }
+  pointer = createVector(pointer.x, pointer.y).sub(pearl.pos);
+  pearl.acc = createVector(dest.x, dest.y).sub(pearl.pos);
 
   anims.forEach(anim => anim.draw());
 
@@ -154,6 +165,7 @@ function draw() {
       'level: ' + currentworld,
       'time: ' + t,
       'size: ' + pearl.size,
+      ...Object.entries(pearl.trait).map(([key, value]) => key + ': ' + value)
     ]
   }, true);
 }
@@ -169,9 +181,9 @@ function addFood(traits = []) {
   if (typeof world.foodcap === 'number' && foods.length >= world.foodcap) return;
   let drop = new Drop();
   drop.traits = traits;
-  if(world.boostrate && random(world.foodcap) < world.boostrate) drop.traits.push(TRAIT.BOOST);
-  if(world.spiketrate && random(world.foodcap) < world.spiketrate) drop.traits.push(TRAIT.SPIKE);
-  if(world.shottrate && random(world.foodcap) < world.shottrate) drop.traits.push(TRAIT.SHOT);
+  if (world.boostrate && random(world.foodcap) < world.boostrate) drop.traits.push(TRAIT.BOOST);
+  if (world.spiketrate && random(world.foodcap) < world.spiketrate) drop.traits.push(TRAIT.SPIKE);
+  if (world.shottrate && random(world.foodcap) < world.shottrate) drop.traits.push(TRAIT.SHOT);
 }
 
 // Get a prediction for the current video frame
@@ -179,27 +191,38 @@ function modelReady() {
 
 }
 
+/*  */
+
+function keyPressed() {
+  if (keyCode === UP_ARROW) return loadWorld(currentworld + 1);
+  if (keyCode === DOWN_ARROW) return loadWorld(currentworld - 1);
+  if (key === 'a') return new Drop({
+    traits: [TRAIT.SHOT]
+  });
+  if (key === 's') return new Drop({
+    traits: [TRAIT.SPIKE]
+  });
+  if (key === 'd') return new Drop({
+    traits: [TRAIT.BOOST]
+  });
+  if (key === 'f') return new Drop({
+    traits: [TRAIT.SHOT,TRAIT.SPIKE,TRAIT.BOOST]
+  });
+}
+
 /* prompt */
 
 function gameOver() {
   setPrompt({
     h2: 'Game Over',
-    button: {
-      text: 'Try again',
-      onclick: e => closePrompt(() => loadWorld(currentworld))
-    }
-  }, false);
-  pause = true;
+  });
 }
 
 function nextLevel() {
   setPrompt({
-    h4: 'That was a nice day.',
-    button: {
-      text: 'Next',
-      onclick: e => closePrompt(() => loadWorld(currentworld + 1))
-    }
-  }, false);
+    h4: 'That was a nice day.'
+  });
+  setTimeout(() => loadWorld(currentworld + 1), 3000);
   pause = true;
 }
 
@@ -211,11 +234,7 @@ function setPrompt(model, close = true) {
   promptElem.set({
     model: model,
     opacity: 1,
-    pointerEvents: 'all',
-    button: !close ? undefined : {
-      text: 'OK',
-      onclick: closePrompt
-    },
+    pointerEvents: 'all'
   }, true);
   if (close) promptTimeout = setTimeout(closePrompt, 5000);
 

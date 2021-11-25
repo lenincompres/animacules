@@ -18,8 +18,7 @@ let worlds = [WORLD,
     heat: 0,
     food: [{
       x: WORLD.w2,
-      y: WORLD.h - 100,
-      traits: [TRAIT.BOOST]
+      y: WORLD.h - 100
     }],
     goal: {
       size: 3900,
