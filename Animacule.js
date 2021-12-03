@@ -238,7 +238,7 @@ class Drop extends Grain {
       noStroke();
       fill(this.lineColor);
       rotate(a);
-      let z = 8;
+      let z = SIZE / 5;
       if (!d) d = -z / 2;
       polygon(d + z * 0.34, 0, z, 3);
       this.lineColor = z * 0.25;

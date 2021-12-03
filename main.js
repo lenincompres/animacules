@@ -1,8 +1,8 @@
 const FOLLOW = {
-  MOUSE: 'mouse',
+  DEFAULT: 'default',
   NOSE: 'nose',
-  LEAN: 'lean',
-  DIFF: 'diff'
+  MOUSE: 'mouse',
+  //DIFF: 'diff'
 }
 
 // Video
@@ -18,23 +18,26 @@ let dest, nose, lastNose, pointer;
 let pearl = {};
 let world = WORLD;
 
+let showInfo = false;
+
 // Teachable Machine model URL:
 let classifier;
 //let soundModel = './tm/';
 let soundModel = 'https://teachablemachine.withgoogle.com/models/_WKomoh3c/';
 
 function loadWorld(n = 0) {
+  n = parseInt(n);
   if (!worlds[n]) return setPrompt({
-    h2: "I'm done!",
+    h2: "All done!",
     p: "That was the last level."
   });
   pause = true;
 
-  world = Object.assign({}, worlds[0]);
+  world = Object.assign({}, WORLD);
   pearl = new Pearl({});
   anims = [pearl];
   agents = [];
-  if (n) Object.assign(world, worlds[n]);
+  Object.assign(world, worlds[n]);
 
   if (world.food) world.food.forEach(opt => new Drop(opt));
   if (world.anims) world.anims.forEach(opt => new Animacule(opt));
@@ -42,6 +45,7 @@ function loadWorld(n = 0) {
   setPrompt(world.prompt);
 
   currentworld = n;
+  levelSelect.value = n;
   pause = false;
   t = 0;
 }
@@ -59,6 +63,16 @@ function setup() {
   lastNose = createVector(WORLD.w2, WORLD.h2);
   pointer = createVector(WORLD.w2, WORLD.h2);
 
+  DOM.style({
+    select: {
+      border: 'none',
+      margin: '0 2em 0 0',
+      padding: 0,
+      background: 'transparent',
+      color: '#666',
+    }
+  });
+
   DOM.set({
     title: 'Animacules - Game',
     textAlign: 'center',
@@ -69,28 +83,27 @@ function setup() {
       h1: 'Animacules',
       menu: {
         margin: '0 0 0.5em',
-        label: 'Follow your',
-        select: {
-          border: 'none',
-          margin: 0,
-          padding: 0,
-          background: 'transparent',
-          color: '#666',
-          id: 'follow',
-          option: [{
-              text: 'Nose',
-              value: FOLLOW.NOSE,
-            },
-            {
-              text: 'Lean',
-              value: FOLLOW.LEAN
-            },
-            {
-              text: 'Mouse',
-              value: FOLLOW.MOUSE,
-            },
-          ]
-        }
+        span: [{
+          label: 'Control:',
+          select: {
+            id: 'follow',
+            option: Object.values(FOLLOW).map(f => new Object({
+              text: f,
+              value: f,
+            }))
+          }
+        }, {
+          id: 'levelSelect',
+          label: 'Level:',
+          select: {
+            id: 'levelSelect',
+            onchange: e => loadWorld(e.target.value),
+            option: worlds.map((w, i) => new Object({
+              text: i + 1,
+              value: i
+            }))
+          }
+        }]
       }
     },
     main: {
@@ -141,7 +154,7 @@ function setup() {
   // with an array every time new poses are detected
   poseNet.on('pose', results => poses = results);
 
-  loadWorld(1);
+  loadWorld(0);
 
   //pew model
   classifier.classify(soundMade);
@@ -174,7 +187,7 @@ function draw() {
   } else if (poses[0] && poses[0].pose && poses[0].pose.nose) {
     nose = poses[0].pose.nose;
     nose = createVector(WORLD.w - nose.x, nose.y);
-    if (follow.value === FOLLOW.LEAN) nose = createVector(pearl.pos.x + nose.x - world.w2, pearl.pos.y + nose.y - world.h2);
+    if (follow.value === FOLLOW.DEFAULT) nose = createVector(pearl.pos.x + nose.x - world.w2, pearl.pos.y + nose.y - world.h2);
   }
 
   // deal with pearl
@@ -186,7 +199,7 @@ function draw() {
     noFill();
     let c = colorSet(pearl.color, 0.68)
     stroke(c);
-    if (follow.value === FOLLOW.LEAN) {
+    if (follow.value === FOLLOW.DEFAULT) {
       line(pearl.pos.x, pearl.pos.y, nose.x, nose.y);
       noStroke();
       fill(c);
@@ -216,15 +229,6 @@ function draw() {
         });
       } else pearl.bullseye = pointer;
     }
-
-    // possible game ending
-    if (world.goal) {
-      if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
-      if (world.goal.time && t > world.goal.time) nextLevel();
-    }
-
-  } else {
-    gameOver();
   }
 
   // draw objects
@@ -239,15 +243,27 @@ function draw() {
   agents.forEach(agent => anims.forEach(a => agent.collide(a)));
   if (world.foodrate && !(t % world.foodrate)) addFood();
 
+  if (pearl.done) {
+    gameOver();
+  } else {
+    // possible game ending
+    if (world.goal) {
+      if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
+      if (world.goal.time && t > world.goal.time) nextLevel();
+    }
+  }
+
   // game status report
-  info.set({
-    p: [
-      'level: ' + currentworld,
-      'time: ' + t,
-      'size: ' + pearl.size,
-      ...Object.entries(pearl.trait).map(([key, value]) => key + ': ' + value)
-    ]
-  }, true);
+  if (showInfo) {
+    info.set({
+      p: [
+        'level: ' + currentworld,
+        'time: ' + t,
+        'size: ' + pearl.size,
+        ...Object.entries(pearl.trait).map(([key, value]) => key + ': ' + value)
+      ]
+    }, true);
+  }
 }
 
 function mouseClicked() {

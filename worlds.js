@@ -1,5 +1,4 @@
-let worlds = [WORLD,
-  {
+let worlds = [{
     prompt: {
       h2: 'This is Pearl.',
       p: 'Unlike other animacules, she has autonomy: can decide where to go, like <b>reach food </b>.',
