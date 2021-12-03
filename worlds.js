@@ -10,7 +10,7 @@ let worlds = [WORLD,
       y: WORLD.h - 100
     }],
     goal: {
-      size: 3900,
+      size: 1900,
       color: 'springGreen'
     }
   },
@@ -21,7 +21,7 @@ let worlds = [WORLD,
     },
     heat: 0,
     goal: {
-      size: 5000,
+      size: 3000,
       color: 'springGreen'
     }
   },
@@ -56,26 +56,6 @@ let worlds = [WORLD,
     }
   }, {
     prompt: {
-      h2: "Three's company.",
-      p: "The competition is fierce. <b>Avoid them in order to survive</b>.",
-    },
-    foodcap: 3,
-    anims: [
-      {
-        x: 0,
-        y: WORLD.h
-      },
-      {
-        x: WORLD.w,
-        y: WORLD.h
-      }
-    ],
-    goal: {
-      time: 1000,
-      color: 'springGreen'
-    }
-  }, {
-    prompt: {
       h2: "Short stacks",
       p: "Food is scarce. <b>Survive</b>.",
     },
@@ -95,31 +75,16 @@ let worlds = [WORLD,
     }
   }, {
     prompt: {
-      h2: "New abilities",
+      h2: "Yikes! Spikes.",
       p: "Some food have special abilities. <b>Survive</b>.",
     },
-    foodcap: 4,
-    spikerate: 1,
-    boostrate: 1,
-    shottrate: 1,
-    anims: [
-      {
-        x: 0,
-        y: WORLD.h
-      }
-    ],
-    goal: {
-      time: 3000
-    }
-  }, {
-    prompt: {
-      h2: "Life's tough",
-      p: "Just <b>survive</b>.",
-    },
-    foodcap: 4,
-    spikerate: 1,
-    boostrate: 1,
-    shottrate: 1,
+    food: [{
+      x: WORLD.w2,
+      y: WORLD.h - 100,
+      props: [PROP.SPIKE]
+    }],
+    foodcap: 3,
+    spikerate: 0.4,
     anims: [
       {
         x: 0,
@@ -131,7 +96,83 @@ let worlds = [WORLD,
       }
     ],
     goal: {
-      time: 3000
+      time: 1000
     }
+  }, {
+    prompt: {
+      h2: "Speed boost.",
+      p: "Some food have special abilities. <b>Survive</b>.",
+    },
+    food: [{
+      x: WORLD.w2,
+      y: WORLD.h - 100,
+      props: [PROP.BOOST]
+    }],
+    foodcap: 3,
+    spikerate: 0.2,
+    boostrate: 0.4,
+    anims: [
+      {
+        x: 0,
+        y: WORLD.h
+      },
+      {
+        x: WORLD.w,
+        y: WORLD.h
+      }
+    ],
+    goal: {
+      time: 1000
+    }
+  }, {
+    prompt: {
+      h2: "Shoot'm up.",
+      p: "Some food have special abilities. <b>Survive</b>.",
+    },
+    food: [{
+      x: WORLD.w2,
+      y: WORLD.h - 100,
+      props: [PROP.SHOT]
+    }],
+    foodcap: 3,
+    spikerate: 0.2,
+    boostrate: 0.2,
+    shotrate: 0.4,
+    anims: [
+      {
+        x: 0,
+        y: WORLD.h
+      },
+      {
+        x: WORLD.w,
+        y: WORLD.h
+      }
+    ],
+    goal: {
+      time: 1000
+    }
+  }, {
+    prompt: {
+      h2: "Have Fun.",
+      p: "There's no time limit here.",
+    },
+    foodcap: 4,
+    spikerate: 0.2,
+    boostrate: 0.2,
+    shotrate: 0.2,
+    anims: [
+      {
+        x: 0,
+        y: WORLD.h
+      },
+      {
+        x: WORLD.w,
+        y: WORLD.h
+      },
+      {
+        x: WORLD.w,
+        y: 0
+      }
+    ]
   }
 ]

@@ -101,10 +101,6 @@ class Grain {
     return this._z;
   }
 
-  get rotation() {
-    return vectorAng(this.vel);
-  }
-
   inDraw(drawing = () => null) {
     push();
     translate(this.pos.x, this.pos.y);
@@ -156,7 +152,7 @@ class Bullet extends Grain {
     let lastPos = createVector(this.pos.x, this.pos.y);
     super.update();
     let diff = p5.Vector.sub(this.pos, lastPos);
-    if(diff.mag() < 0.5) return this.done = true;
+    if (diff.mag() < 0.5) return this.done = true;
     let d = 2 * this.d;
     let n = floor(diff.mag() / d);
     diff.setMag(d);
@@ -201,14 +197,17 @@ class Drop extends Grain {
     if (this.props.includes(PROP.SHOT)) this.drawGun();
   }
 
-  drawSpikes(a = 1, n = 8) {
+  drawSpikes(d, n = 8) {
+    let max = 4;
+    if (!d) d = max / 2;
+    else d *= 3;
+    d = min(d, max);
     let delta = PI / n;
     this.inDraw(() => {
-      if (a < 1) stroke(colorSet(this.color, a));
       while (n) {
         rotate(delta);
-        line(0, this.r, 0, this.r * 1.17);
-        line(0, -this.r, 0, -this.r * 1.17);
+        line(0, this.r, 0, this.r + d);
+        line(0, -this.r, 0, -this.r - d);
         n -= 1;
       }
     });
@@ -333,8 +332,8 @@ class Animacule extends Drop {
 
   spike() {
     if (!this.getTrait(PROP.SPIKE)) return;
-    let a = this.type === TYPE.FOOD ? 1 : this.getTrait(PROP.SPIKE) / 200;
-    this.drawSpikes(a);
+    let d = this.type === TYPE.FOOD ? 1 : this.getTrait(PROP.SPIKE) / 200;
+    this.drawSpikes(d);
   }
 
   boost() {
