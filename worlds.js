@@ -1,19 +1,8 @@
-const WORLD = {
-  w: 600,
-  h: 600,
-  w2: 300,
-  h2: 300,
-  heat: 1.5,
-  frix: 0.9,
-  foodrate: 50,
-  foodcap: 1
-}
-
 let worlds = [WORLD,
   {
     prompt: {
       h2: 'This is Pearl.',
-      p: 'Unlike other animacules, she has "autonomy". She can decide where to go, and <b>reach food </b>.',
+      p: 'Unlike other animacules, she has autonomy: can decide where to go, like <b>reach food </b>.',
     },
     heat: 0,
     food: [{
@@ -105,6 +94,28 @@ let worlds = [WORLD,
       time: 1000
     }
   }, {
+    prompt: {
+      h2: "New abilities",
+      p: "Some food have special abilities. <b>Survive</b>.",
+    },
+    foodcap: 4,
+    spikerate: 1,
+    boostrate: 1,
+    shottrate: 1,
+    anims: [
+      {
+        x: 0,
+        y: WORLD.h
+      }
+    ],
+    goal: {
+      time: 3000
+    }
+  }, {
+    prompt: {
+      h2: "Life's tough",
+      p: "Just <b>survive</b>.",
+    },
     foodcap: 4,
     spikerate: 1,
     boostrate: 1,
@@ -117,11 +128,10 @@ let worlds = [WORLD,
       {
         x: WORLD.w,
         y: WORLD.h
-      },
-      {
-        x: WORLD.w,
-        y: 0
       }
-    ]
+    ],
+    goal: {
+      time: 3000
+    }
   }
 ]

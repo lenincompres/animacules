@@ -1,4 +1,9 @@
-const USE_MOUSE = true;
+const FOLLOW = {
+  MOUSE: 'mouse',
+  NOSE: 'nose',
+  LEAN: 'lean',
+  DIFF: 'diff'
+}
 
 // Video
 let video;
@@ -10,14 +15,14 @@ let foods = [];
 let agents = [];
 let t = 0;
 let currentworld = 0;
-let pointer;
-let dest;
+let dest, lastDest, pointer;
 let pearl = {};
-
-//Constances
-const SPEED = 600 / 1000;
-
 let world = WORLD;
+
+// Teachable Machine model URL:
+let classifier;
+//let soundModel = './tm/';
+let soundModel = 'https://teachablemachine.withgoogle.com/models/_WKomoh3c/';
 
 function loadWorld(n = 0) {
   if (!worlds[n]) return setPrompt({
@@ -43,20 +48,50 @@ function loadWorld(n = 0) {
   t = 0;
 }
 
+function preload() {
+  // Load the model
+  classifier = ml5.soundClassifier(soundModel + 'model.json');
+}
+
 function setup() {
+  frameRate(30);
 
   dest = createVector(WORLD.w2, WORLD.h2);
-  pointer = createVector(0,0);
+  pointer = createVector(0, 0);
 
   DOM.set({
     title: 'Animacules - Game',
-    fontSize: '20pt',
     textAlign: 'center',
     backgroundColor: '#def',
     header: {
       color: 'black',
       fontFamily: 'fantasy',
-      h1: 'Animacules'
+      h1: 'Animacules',
+      menu: {
+        margin: '0 0 0.5em',
+        label: 'Follow your',
+        select: {
+          border: 'none',
+          margin: 0,
+          padding: 0,
+          background: 'transparent',
+          color: '#666',
+          id: 'follow',
+          option: [{
+              text: 'Mouse',
+              value: FOLLOW.MOUSE,
+            },
+            {
+              text: 'Nose',
+              value: FOLLOW.NOSE,
+            },
+            {
+              text: 'Lean',
+              value: FOLLOW.LEAN
+            }
+          ]
+        }
+      }
     },
     main: {
       position: 'relative',
@@ -68,6 +103,7 @@ function setup() {
           id: 'promptElem',
           margin: '2em',
           fontFamily: 'fantasy',
+          fontSize: '1.34em',
           transition: '0.5s',
           opacity: 0,
         },
@@ -81,7 +117,6 @@ function setup() {
     aside: {
       id: 'info',
       textAlign: 'left',
-      fontSize: '.5em',
       top: 0,
       margin: '1em',
       position: 'fixed',
@@ -91,7 +126,6 @@ function setup() {
       position: 'fixed',
       bottom: 0,
       padding: '0.5em 1em',
-      fontSize: '0.5em',
       color: 'white',
       textShadow: '1px 1px 1px black',
       p: 'Created by Lenin A. Compres.'
@@ -109,57 +143,108 @@ function setup() {
 
   loadWorld(1);
 
-  frameRate(24);
+  //pew model
+  classifier.classify(soundMade);
+}
+
+// The model recognizing a sound will trigger this event
+function soundMade(error, results) {
+  if (error) return console.error(error);
+  let label = results[0].label;
+  if(label === 'pew') pearl.fire();
 }
 
 function draw() {
   t += 1;
-  background(0);
 
+  // black base
+  background(0);
+  // draw video
   const flippedVideo = ml5.flipImage(video);
   image(flippedVideo, 0, 0, world.w, world.h);
-
-  colorMode(HSL);
+  // dark film
   noStroke();
-  fill(0, 0.68);
+  fill(colorSet(0, 0.68));
   rect(0, 0, WORLD.w, WORLD.h);
 
-  if (USE_MOUSE) {
+  // find destination
+  if (follow.value === FOLLOW.MOUSE || !poses[0]) {
     dest = {
       x: mouseX,
       y: mouseY
     };
-    pointer = pearl.vel;
-  } else if (poses[0]) {
+  } else {
     dest = poses[0].pose.nose;
     dest.x = world.w - dest.x;
+    if (dest.x < pearl.r || dest.y < pearl.r || dest.x > world.w - pearl.r|| dest.y > world.h - pearl.r) dest = lastDest;
+    else {
+      if (follow.value === FOLLOW.DIFF) {
+        dest.x -= pearl.pos.x;
+        dest.y -= pearl.pos.y;
+      }
+      if (follow.value === FOLLOW.LEAN) {
+        dest.x -= world.w2;
+        dest.y -= world.h2;
+        if (dist(dest.x,dest.y,0,0) > world.w2) dest = createVector(lastDest.x, lastDest.y);
+      }
+    }
+  }
+  lastDest = createVector(dest.x, dest.y);
+  dest = createVector(dest.x, dest.y);
+
+  // draw objects
+  anims.forEach(anim => anim.draw());
+
+  if (follow.value === FOLLOW.LEAN) {
+    // destination line
+    pearl.inDraw(() => {
+      strokeWeight(1);
+      fill(pearl.bodyColor);
+      stroke(pearl.bodyColor);
+      drawArrow(dest.limit(pearl.r));
+    });
+  } else dest.sub(pearl.pos);
+
+  pearl.acc = dest;
+  // find pointer
+  if (follow.value === FOLLOW.MOUSE || !poses[0]) {
+    pointer = pearl.vel;
+  } else {
     pointer = poses[0].pose.rightWrist;
     pointer.x = world.w - pointer.x;
+    pointer = createVector(pointer.x, pointer.y);
   }
-  pointer = createVector(pointer.x, pointer.y).sub(pearl.pos);
-  pearl.acc = createVector(dest.x, dest.y).sub(pearl.pos);
-
-  anims.forEach(anim => anim.draw());
 
   if (pause) return;
 
+  // updating things
+  anims = anims.filter(anim => !anim.done);
   anims.forEach(anim => anim.update());
-
   foods = anims.filter(a => a.type === TYPE.FOOD);
   agents = anims.filter(a => a.type === TYPE.AGENT);
+  agents.forEach(agent => anims.forEach(a => agent.collide(a)));
+  if (world.foodrate && !(t % world.foodrate)) addFood();
 
-  agents.forEach(agent => anims.forEach(food => agent.eat(food)));
-  anims = anims.filter(anim => !anim.done);
+  if (follow.value !== FOLLOW.MOUSE || !poses[0]) {
+    let targets = agents.filter(a => pearl !== a)
+    if (targets.length) {
+      pointer.sub(pearl.pos);
+      pearl.bullseye = targets.reduce((b, a) => {
+        let angA = pointer.angleBetween(p5.Vector.sub(a.pos, pearl.pos));
+        let angB = pointer.angleBetween(p5.Vector.sub(b.pos, pearl.pos));
+        return !b || abs(angA) < abs(angB) ? a : b
+      });
+    } else pearl.bullseye = pointer;
+  }
 
+  // possible game ending
   if (pearl.done) gameOver();
-
-  if (world.goal) {
+  else if (world.goal) {
     if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
     if (world.goal.time && t > world.goal.time) nextLevel();
   }
 
-  if (world.foodrate && !(t % world.foodrate)) addFood();
-
+  // game status report
   info.set({
     p: [
       'level: ' + currentworld,
@@ -171,19 +256,21 @@ function draw() {
 }
 
 function mouseClicked() {
-  if (!USE_MOUSE) return;
-  fireBullet(atan2(mouseX - pearl.x, mouseY - pearl.y));
+  if (follow.value !== FOLLOW.MOUSE) return;
+  pearl.fire();
 }
 
-function fireBullet(angle) {}
-
-function addFood(traits = []) {
+function addFood(props = []) {
   if (typeof world.foodcap === 'number' && foods.length >= world.foodcap) return;
-  let drop = new Drop();
-  drop.traits = traits;
-  if (world.boostrate && random(world.foodcap) < world.boostrate) drop.traits.push(TRAIT.BOOST);
-  if (world.spiketrate && random(world.foodcap) < world.spiketrate) drop.traits.push(TRAIT.SPIKE);
-  if (world.shottrate && random(world.foodcap) < world.shottrate) drop.traits.push(TRAIT.SHOT);
+  if (world.boostrate && random(world.foodcap) < world.boostrate)
+    props.push(PROP.BOOST);
+  if (world.spiketrate && random(world.foodcap) < world.spiketrate)
+    rops.push(PROP.SPIKE);
+  if (world.shottrate && random(world.foodcap) < world.shottrate)
+    props.push(PROP.SHOT);
+  new Drop({
+    props: props
+  });
 }
 
 // Get a prediction for the current video frame
@@ -197,16 +284,16 @@ function keyPressed() {
   if (keyCode === UP_ARROW) return loadWorld(currentworld + 1);
   if (keyCode === DOWN_ARROW) return loadWorld(currentworld - 1);
   if (key === 'a') return new Drop({
-    traits: [TRAIT.SHOT]
+    props: [PROP.BOOST]
   });
   if (key === 's') return new Drop({
-    traits: [TRAIT.SPIKE]
+    props: [PROP.SHOT]
   });
   if (key === 'd') return new Drop({
-    traits: [TRAIT.BOOST]
+    props: [PROP.SPIKE]
   });
   if (key === 'f') return new Drop({
-    traits: [TRAIT.SHOT,TRAIT.SPIKE,TRAIT.BOOST]
+    props: [PROP.SHOT, PROP.SPIKE, PROP.BOOST]
   });
 }
 
@@ -220,7 +307,7 @@ function gameOver() {
 
 function nextLevel() {
   setPrompt({
-    h4: 'That was a nice day.'
+    h4: 'Good job.'
   });
   setTimeout(() => loadWorld(currentworld + 1), 3000);
   pause = true;
@@ -252,4 +339,11 @@ function closePrompt(callback) {
     opacity: 0
   });
   if (callback) promptTimeout = setTimeout(callback, 1000);
+}
+
+function drawArrow(vect, z = 5) {
+  line(0, 0, vect.x, vect.y);
+  translate(vect.x, vect.y);
+  rotate(vectorAng(vect))
+  polygon(0, 0, z, 3);
 }
