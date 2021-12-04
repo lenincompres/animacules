@@ -1,0 +1,10 @@
+- Different colors for powerups
+- Split if gets too big (a clone)
+- Show time, when goal is to reach a time or for score
+- Add sounds
+- Record people playing for documentations
+- Last one standing
+- chomp powerups (hurt and grow)
+- Enemies are different colors
+- splitter gun (split the others — a mixedcolor)
+- 

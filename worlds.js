@@ -1,15 +1,20 @@
-let worlds = [{
+const setRate = (prop, val) => new Object({
+  prop: prop,
+  val: val
+});
+
+const worlds = [{
     prompt: {
       h2: 'This is Pearl.',
-      p: 'Unlike other animacules, she has autonomy: can decide where to go, like <b>reach food </b>.',
+      p: 'Unlike other animacules, she has autonomy: can decide where to go, like <b>reach drop </b>.',
     },
     heat: 0,
-    food: [{
+    drop: [{
       x: WORLD.w2,
-      y: WORLD.h - 100
+      y: WORLD.h * 0.86
     }],
     goal: {
-      size: 1900,
+      size: SIZE[TYPE.CELL] + 1,
       color: 'springGreen'
     }
   },
@@ -20,7 +25,7 @@ let worlds = [{
     },
     heat: 0,
     goal: {
-      size: 3000,
+      size: 2 * SIZE[TYPE.CELL],
       color: 'springGreen'
     }
   },
@@ -29,9 +34,8 @@ let worlds = [{
       h2: "It's a hot one.",
       p: 'On hot days, pearl needs to <b>eat, in order to survive</b>.',
     },
-    size: 0.5,
-    foodcap: 1,
-    foodrate: 50,
+    dropcap: 1,
+    droprate: 50,
     heat: 2,
     goal: {
       time: 1000,
@@ -42,7 +46,7 @@ let worlds = [{
       h2: "I'm not alone.",
       p: "Others will eat too. Pearl must <b>avoid them in order to survive</b>.",
     },
-    foodcap: 2,
+    dropcap: 2,
     anims: [
       {
         x: 0,
@@ -58,7 +62,7 @@ let worlds = [{
       h2: "Short stacks",
       p: "Food is scarce. <b>Survive</b>.",
     },
-    foodcap: 2,
+    dropcap: 2,
     anims: [
       {
         x: 0,
@@ -75,15 +79,17 @@ let worlds = [{
   }, {
     prompt: {
       h2: "Yikes! Spikes.",
-      p: "Some food have special abilities. <b>Survive</b>.",
+      p: "Some drop have special abilities. <b>Survive</b>.",
     },
-    food: [{
+    drop: [{
       x: WORLD.w2,
-      y: WORLD.h - 100,
+      y: WORLD.h * 0.86,
       props: [PROP.SPIKE]
     }],
-    foodcap: 3,
-    spikerate: 0.4,
+    dropcap: 3,
+    rate: {
+      spike: 0.4,
+    },
     anims: [
       {
         x: 0,
@@ -100,16 +106,18 @@ let worlds = [{
   }, {
     prompt: {
       h2: "Speed boost.",
-      p: "Some food have special abilities. <b>Survive</b>.",
+      p: "Some drop have special abilities. <b>Survive</b>.",
     },
-    food: [{
+    drop: [{
       x: WORLD.w2,
-      y: WORLD.h - 100,
+      y: WORLD.h * 0.86,
       props: [PROP.BOOST]
     }],
-    foodcap: 3,
-    spikerate: 0.2,
-    boostrate: 0.4,
+    dropcap: 3,
+    rate: {
+      spike: 0.2,
+      boost: 0.4,
+    },
     anims: [
       {
         x: 0,
@@ -126,17 +134,80 @@ let worlds = [{
   }, {
     prompt: {
       h2: "Shoot'm up.",
-      p: "Some food have special abilities. <b>Survive</b>.",
+      p: "Some drop have special abilities. <b>Survive</b>.",
     },
-    food: [{
+    drop: [{
       x: WORLD.w2,
-      y: WORLD.h - 100,
+      y: WORLD.h * 0.86,
       props: [PROP.SHOT]
     }],
-    foodcap: 3,
-    spikerate: 0.2,
-    boostrate: 0.2,
-    shotrate: 0.4,
+    dropcap: 3,
+    rate: {
+      spike: 0.2,
+      boost: 0.2,
+      shot: 0.4,
+    },
+    anims: [
+      {
+        x: 0,
+        y: WORLD.h
+      },
+      {
+        x: WORLD.w,
+        y: WORLD.h
+      }
+    ],
+    goal: {
+      time: 1000
+    }
+  }, {
+    prompt: {
+      h2: "Split up.",
+      p: "Some drop have special abilities. <b>Survive</b>.",
+    },
+    drop: [{
+      x: WORLD.w2,
+      y: WORLD.h * 0.86,
+      props: [PROP.EGG]
+    }],
+    dropcap: 3,
+    rate: {
+      spike: 0.2,
+      boost: 0.2,
+      shot: 0.2,
+      egg: 0.4,
+    },
+    anims: [
+      {
+        x: 0,
+        y: WORLD.h
+      },
+      {
+        x: WORLD.w,
+        y: WORLD.h
+      }
+    ],
+    goal: {
+      time: 1000
+    }
+  }, {
+    prompt: {
+      h2: "Help out.",
+      p: "Some drop have special abilities. <b>Survive</b>.",
+    },
+    drop: [{
+      x: WORLD.w2,
+      y: WORLD.h * 0.86,
+      props: [PROP.HALO]
+    }],
+    dropcap: 3,
+    rate: {
+      spike: 0.2,
+      boost: 0.2,
+      shot: 0.2,
+      egg: 0.2,
+      halo: 0.4,
+    },
     anims: [
       {
         x: 0,
@@ -155,10 +226,15 @@ let worlds = [{
       h2: "Have Fun.",
       p: "There's no time limit here.",
     },
-    foodcap: 4,
-    spikerate: 0.2,
-    boostrate: 0.2,
-    shotrate: 0.2,
+    dropcap: 4,
+    rate: {
+      spike: 0.2,
+      boost: 0.2,
+      shot: 0.2,
+      egg: 0.2,
+      halo: 0.2,
+      ghost: 0.2,
+    },
     anims: [
       {
         x: 0,

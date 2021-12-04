@@ -1,33 +1,52 @@
+const FRAMERATE = 26;
+
 const WORLD = {
-  w: 600,
+  w: 800,
   h: 600,
-  w2: 300,
-  h2: 300,
-  heat: 1.5,
   frix: 0.9,
-  foodrate: 50,
-  foodcap: 1
+  droprate: 50,
+  dropcap: 1,
+  heat: 1
 }
+WORLD.w2 = WORLD.w * 0.5;
+WORLD.h2 = WORLD.h * 0.5;
 
 const TYPE = {
+  DOT: 'dot',
   BULLET: 'bullet',
-  FOOD: ' food',
-  AGENT: 'agent'
+  DROP: 'drop',
+  CELL: 'cell',
+  PEARL: 'pearl'
 }
 
+const COLOR = {};
+COLOR[TYPE.DOT] = 'gray';
+COLOR[TYPE.BULLET] = 'red';
+COLOR[TYPE.DROP] = 'lime';
+COLOR[TYPE.CELL] = 'dodgerblue';
+COLOR[TYPE.PEARL] = 'skyblue';
+
+const SIZE = {
+  LINE: WORLD.w * WORLD.h / 200000
+};
+SIZE[TYPE.DOT] = WORLD.w * WORLD.h / 8000
+SIZE[TYPE.BULLET] = 2 * SIZE[TYPE.DOT];
+SIZE[TYPE.DROP] = 5 * SIZE[TYPE.DOT];
+SIZE[TYPE.CELL] = 10 * SIZE[TYPE.DROP];
+SIZE[TYPE.PEARL] = 10 * SIZE[TYPE.DROP];
+
 const PROP = {
+  FOOD: 'food',
+  PAIN: 'pain',
   BOOST: 'boost',
   SPIKE: 'spike',
-  GROW: 'grow',
   SHOT: 'shot',
-  PAIN: 'pain', // when hit with spikes or shot
-  /*
-  SEEK: 'seek', // can see food
-  SPLIT: 'split', // make other split in half
-  CHOMP: 'chomp', // ability to break food piece from others
   EGG: 'egg', // (*) get big enough and have a new generation
-  OVUM: 'ovum', // (+) needs (-) to be egg
-  SEED: 'seed', // (-) needs (+) to be egg, goes into agents with (+) upon bumping
+  HALO: 'halo', // gun that shoots food at others
+  GHOST: 'ghost', // transparent to bullets and others
+  CHOMP: 'chomp', // ability to break drop piece from others
+  /*
+  BLIND: 'blind', // can't seek drop or point shoot
   */
 }
 
@@ -37,63 +56,50 @@ const SAY = {
   BOOM: 'boom', // dart all spikes
 }
 
-const SIZE = WORLD.w * WORLD.h / 10000;
-const FRAMERATE = 30;
-const SPEED = 0.2 * SIZE / FRAMERATE;
+const SPEED = 3 * SIZE.LINE / FRAMERATE;
 
 let anims = [];
 
-class Grain {
+class Dot {
   constructor({
     x,
     y,
-    size = SIZE,
-    color = 'yellow'
+    size,
+    type = TYPE.DOT,
   }) {
     if (x === undefined) x = random(world.w);
     if (y === undefined) y = random(world.h);
     this.pos = createVector(x, y);
     this.acc = createVector(0, 0);
     this.vel = createVector(0, 0);
-    this.color = color;
-    this.size = size;
+    this.dew = 0;
+    this.type = type;
+    this.size = size ? size : SIZE[this.type];
+    this.color = COLOR[this.type];
     anims.push(this);
   }
 
   set color(c) {
     if (!c.levels) c = color(c);
     if (this._color === undefined) this._firstColor = c;
-    this._color = colorSet(c, 0.68);
-  }
-
-  set bodyColor(a) {
-    fill(this.bodyColor);
-  }
-
-  set lineColor(w = 1) {
-    stroke(this.lineColor);
-    strokeWeight(w);
-  }
-
-  get bodyColor() {
-    return colorSet(this.color, 0.86);
-  }
-
-  get lineColor() {
-    return colorAdd(this.color, {
-      l: 15,
-      a: 1
-    });
+    this._color = c;
   }
 
   get color() {
     return this._color;
   }
 
+  getLineColor() {
+    return colorAdd(this.color, {
+      l: 15,
+      a: 1
+    });
+  }
+
   set size(v) {
     this._z = v;
-    this.d = 2 * sqrt(v / PI);
-    this.r = this.d * 0.5;
+    this.r = sqrt(v / PI);
+    this.d = this.r * 2;
     this.done = v < 1;
   }
 
@@ -104,9 +110,9 @@ class Grain {
   inDraw(drawing = () => null) {
     push();
     translate(this.pos.x, this.pos.y);
-    fill(this.bodyColor);
-    stroke(this.lineColor);
-    strokeWeight(2);
+    fill(colorSet(this.color, 0.68));
+    stroke(this.getLineColor());
+    strokeWeight(SIZE.LINE);
     push();
     drawing();
     pop();
@@ -135,24 +141,39 @@ class Grain {
       delete this;
     }
   }
+
+  collide(target) {
+    if (this.done) return;
+    if (target === this) return;
+    if (this.isTouching(target)) return;
+    let col = p5.Vector.add(target.pos, this.pos).mult(0.5);
+    target.vel.add(p5.Vector.sub(target.pos, col).setMag(sqrt(this.size / SIZE[TYPE.DOT])));
+    return col;
+  }
 }
 
-class Bullet extends Grain {
+class Bullet extends Dot {
   constructor(opt = {}) {
+    if (!opt.type) opt.type = TYPE.BULLET;
+    if (!opt.vel) opt.vel = p5.Vector(0, SPEED);
     super(opt);
-    opt.shooter.addTrait(PROP.SHOT, -2 * SIZE);
-    this.size *= 2;
-    this.dew = 0;
-    this.type = TYPE.BULLET;
-    this.color = opt.color ? opt.color : 'red';
-    this.vel = opt.vel ? opt.vel.setMag(150 * SPEED) : p5.Vector(0, SPEED);
+    this.vel = opt.vel.setMag(150 * SPEED);
+    this.isHalo = opt.shooter.has(PROP.HALO);
+    if (this.isHalo) this.color = COLOR[TYPE.DROP];
   }
 
   update() {
     let lastPos = createVector(this.pos.x, this.pos.y);
     super.update();
     let diff = p5.Vector.sub(this.pos, lastPos);
-    if (diff.mag() < 0.5) return this.done = true;
+    if (diff.mag() < SIZE.LINE) {
+      new Drop({
+        x: this.pos.x,
+        y: this.pos.y,
+        size: this.size
+      })
+      return this.done = true;
+    }
     let d = 2 * this.d;
     let n = floor(diff.mag() / d);
     diff.setMag(d);
@@ -162,48 +183,53 @@ class Bullet extends Grain {
       diff.setMag(d * n);
       n -= 1;
     }
-    agents.forEach(a => {
-      if (this.done) return;
+    anims.forEach(a => {
+      if (this.done || !a.hasAgency || a.done) return;
       points.forEach(p => {
-        if (this.done) return;
-        this.done = a.pos.dist(p) < a.r;
+        if (!this.done) this.done = a.pos.dist(p) < a.r;
       });
       if (this.done) {
-        a.addTrait(PROP.PAIN, this.size);
-        a.vel.add(this.vel.mult(10 * this.size / a.size));
+        if (this.isHalo) a.addTrait(PROP.FOOD, this.size);
+        else {
+          a.addTrait(PROP.PAIN, this.size);
+          a.vel.add(this.vel.mult(10 * this.size / a.size));
+        }
       }
     });
   }
 }
 
-class Drop extends Grain {
+class Drop extends Dot {
   constructor(opt = {}) {
+    if (!opt.type) opt.type = TYPE.DROP;
     super(opt);
-    this.size *= 5;
-    this.dew = opt.dew ? opt.dew : 0.5;
-    this.type = TYPE.FOOD;
-    this.color = opt.color ? opt.color : 'green';
+    this.dew = 0;
     this.props = opt.props ? opt.props : [];
-    if (opt.traits) opt.traits.forEach(t => this.addTrait(t, this.size));
+  }
+
+  has(prop) {
+    return this.props.includes(prop);
   }
 
   draw() {
+    if (this.has(PROP.EGG)) this.drawEgg();
     super.draw();
-    if (this.props.includes(PROP.BOOST)) {
+    if (this.has(PROP.BOOST)) {
       this.drawFlag();
-      if (this.type === TYPE.FOOD) this.drawFlag(0, 1, 2 * PI);
+      if (this.type === TYPE.DROP) this.drawFlag(1, PI);
     }
-    if (this.props.includes(PROP.SPIKE)) this.drawSpikes();
-    if (this.props.includes(PROP.SHOT)) this.drawGun();
+    if (this.has(PROP.HALO)) this.drawHalo()
+    if (this.has(PROP.BOOST)) this.drawFlag();
+    if (this.has(PROP.SPIKE)) this.drawSpikes();
+    if (this.has(PROP.SHOT)) this.drawGun();
   }
 
-  drawSpikes(d, n = 8) {
-    let max = 4;
-    if (!d) d = max / 2;
-    else d *= 3;
-    d = min(d, max);
+  drawSpikes(d, c) {
+    let n = 8;
     let delta = PI / n;
+    if (!d) d = SIZE.LINE * 2;
     this.inDraw(() => {
+      if (c) stroke(c);
       while (n) {
         rotate(delta);
         line(0, this.r, 0, this.r + d);
@@ -213,57 +239,77 @@ class Drop extends Grain {
     });
   }
 
-  drawFlag(len, a = 1, ang = 0) {
+  drawFlag(a = 1, ang = 0, len = 1) {
     this.inDraw(() => {
       noFill();
-      strokeWeight(2);
-      stroke(colorSet(this.lineColor, a));
-      if (!ang) ang = PI + vectorAng(this.acc);
-      rotate(ang);
-      if (!len) len = 0.5;
-      len *= this.r;
-      let s = sin(frameCount) * len * 0.34;
+      stroke(colorSet(this.getLineColor(), a));
+      rotate(PI + vectorAng(this.acc) + ang);
+      translate(this.r, 0);
+      len = this.r * len;
+      let s = len * sin(frameCount) * 0.34;
       beginShape();
-      curveVertex(this.r, 0);
-      curveVertex(this.r, 0);
-      curveVertex(this.r + len * 0.5, s * 0.5);
-      curveVertex(this.r + len, -s);
-      curveVertex(this.r + len, -s);
+      curveVertex(0, 0);
+      curveVertex(0, 0);
+      curveVertex(len * 0.5, s * 0.5);
+      curveVertex(len, -s);
+      curveVertex(len, -s);
       endShape();
     });
   }
 
-  drawGun(a = frameCount / FRAMERATE, d) {
+  drawGun(a = frameCount / FRAMERATE, c) {
     this.inDraw(() => {
-      noStroke();
-      fill(this.lineColor);
       rotate(a);
-      let z = SIZE / 5;
-      if (!d) d = -z / 2;
-      polygon(d + z * 0.34, 0, z, 3);
-      this.lineColor = z * 0.25;
-      line(d, 0, d + 1.86 * z, 0);
+      translate(this.r,0);
+      let z = SIZE.LINE * 5;
+      let red = this.hasAgency ? 1 : 0.5;
+      strokeWeight(SIZE.LINE);
+      if(c) stroke(c);
+      line(0, 0, 1.86 * z * red, 0);
+      noStroke();
+      fill(this.getLineColor());
+      polygon(z * 0.34 / red, 0, red * z, 3);
     });
-    this.gun = createVector(cos(a), sin(a)).setMag(this.r + d * 0.5);
+    this.gun = createVector(cos(a), sin(a)).setMag(this.r * 1.5);
+  }
+
+  drawHalo(a = 1) {
+    this.inDraw(() => {
+      noFill();
+      strokeWeight(SIZE.LINE * 0.5);
+      stroke(colorSet(COLOR[TYPE.DROP], a));
+      circle(0, 0, this.d + SIZE.LINE * 4);
+    });
+  }
+
+  drawEgg(outline = false) {
+    this.inDraw(() => {
+      let r = min(sqrt(2 * SIZE[TYPE.DROP] / PI), this.r);
+      let len = r * 0.5;
+      strokeWeight(SIZE.LINE * 1.5);
+      line(-len, 0, len, 0);
+      line(0, -len, 0, len);
+      strokeWeight(SIZE.LINE * 0.5);
+      if (outline) circle(0, 0, 2 * r);
+    });
   }
 
   update() {
     super.update();
-    this.size -= world.heat * this.dew;
+    this.size -= SIZE[TYPE.DOT] * world.heat * this.dew / FRAMERATE;
   }
 }
 
-class Animacule extends Drop {
+class Cell extends Drop {
   constructor(opt = {}) {
+    if (!opt.type) opt.type = TYPE.CELL;
     super(opt);
-    this.color = opt.color ? opt.color : 'dodgerblue';
-    this.type = TYPE.AGENT;
-    this.speed = opt.speed ? opt.speed : SPEED;
-    this.size *= 10;
-    this.metab = opt.metab ? opt.metab : 0.5;
-    this.dew += this.metab;
+    this.hasAgency = true;
+    this.speed = SPEED;
+    this.metab = 1;
+    this.dew = this.metab;
     this.trait = {};
-    Object.values(PROP).forEach(t => this.addTrait(t));
+    Object.values(PROP).forEach(t => this.trait[t] = 0);
   }
 
   set color(c) {
@@ -271,18 +317,20 @@ class Animacule extends Drop {
   }
 
   get color() {
+    let r = this.getTrait(PROP.PAIN);
+    let g = this.getTrait(PROP.FOOD);
     return colorAdd(this._color, {
-      r: this.getTrait(PROP.PAIN),
-      g: this.getTrait(PROP.GROW)
+      r: r - g,
+      g: g - r,
+      b: -r - g
     })
   }
 
   get speed() {
-    if (this.trait && this.getTrait(PROP.BOOST)) {
-      let boost = min(this._speed, this.getTrait(PROP.BOOST));
-      return this._speed + boost;
-    }
-    return this._speed;
+    if (!this.props) return this._speed;
+    let pBoost = this.props.includes(PROP.BOOST) ? this._speed : 0;
+    let tBoost = min(this._speed, this.getTrait(PROP.BOOST));
+    return this._speed + tBoost + pBoost;
   }
 
   set speed(v) {
@@ -297,8 +345,11 @@ class Animacule extends Drop {
     return this._acc;
   }
 
+  has(prop) {
+    return super.has(prop) || !!this.getTrait(prop);
+  }
+
   addTrait(t, n = 0) {
-    if (this.trait[t] === undefined) this.trait[t] = 0;
     return this.trait[t] = max(this.getTrait(t) + n, 0);
   }
 
@@ -314,78 +365,103 @@ class Animacule extends Drop {
 
   draw() {
     super.draw();
-    this.drawEye();
-    this.boost();
-    this.spike();
-    this.point();
+    this.drawEye()
   }
 
   drawEye() {
     this.inDraw(() => {
       rotate(vectorAng(this.acc));
-      fill(this.lineColor);
+      fill(this.getLineColor());
       let d = this.r * 0.68;
       let m = map(this.acc.mag(), 0, this.speed, 0, d);
       circle(m, 0, d);
     });
   }
 
-  spike() {
-    if (!this.getTrait(PROP.SPIKE)) return;
-    let d = this.type === TYPE.FOOD ? 1 : this.getTrait(PROP.SPIKE) / 200;
-    this.drawSpikes(d);
-  }
-
-  boost() {
-    if (!this.getTrait(PROP.BOOST)) return;
-    let a = this.type === this.getTrait(PROP.BOOST) / 200;
-    this.drawFlag(1, a);
-    if (this.type === TYPE.FOOD) this.drawFlag(1, a, PI);
-  }
-
-  point() {
+  drawGun() {
     if (!this.getTrait(PROP.SHOT)) return;
     if (!this.pointAng) this.pointAng = 0;
+    let a = frameCount / FRAMERATE;
     if (this.bullseye && this.bullseye.pos) {
       let ba = p5.Vector.sub(this.bullseye.pos, this.pos);
       this.pointAng += (vectorAng(ba) - this.pointAng) / 4;
-    } else this.pointAng = undefined;
-    this.drawGun(this.pointAng, this.r);
+    }
+    a = this.pointAng;
+    super.drawGun(a, COLOR[this.has(PROP.HALO) ? TYPE.DROP : TYPE.BULLET]);
+  }
+
+  drawSpikes() {
+    if (!this.getTrait(PROP.SPIKE)) return;
+    let d = min(this.getTrait(PROP.SPIKE) / SIZE[TYPE.DOT], SIZE.LINE * 5);
+    let h = this.has(PROP.HALO);
+    super.drawSpikes(d + SIZE.LINE, h ? COLOR[TYPE.DROP] : COLOR[TYPE.BULLET]);
+    super.drawSpikes(d);
+  }
+
+  drawFlag() {
+    let n = 0;
+    if (this.props.includes(PROP.BOOST)) super.drawFlag(1, 0, 0.68);
+    if (!this.getTrait(PROP.BOOST)) return;
+    super.drawFlag(this.getTrait(PROP.BOOST) / SIZE[TYPE.DOT]);
+  }
+
+  drawHalo() {
+    if (!this.getTrait(PROP.HALO)) return;
+    super.drawHalo(this.getTrait(PROP.HALO) / SIZE[TYPE.DOT]);
+  }
+
+  drawEgg() {
+    if (!this.getTrait(PROP.EGG)) return;
+    super.drawEgg(true);
   }
 
   fire() {
     if (!this.getTrait(PROP.SHOT)) return;
-    new Bullet({
+    let bullet = new Bullet({
       x: this.pos.x + this.gun.x,
       y: this.pos.y + this.gun.y,
       vel: this.gun,
       shooter: this
-    })
+    });
+    this.addTrait(PROP.SHOT, -bullet.size);
+    this.addTrait(PROP.HALO, -bullet.size);
+  }
+
+  split() {
+    let baby = new Cell({
+      x: this.pos.x,
+      y: this.pos.y
+    });
+    baby.size = 2 * SIZE[TYPE.DROP];
+    this.addTrait(PROP.EGG, -baby.size);
+    this.size -= baby.size;
   }
 
   update() {
     super.update();
     this.acc.limit(this.speed);
     // reduce thse boost
-    if (this.getTrait(PROP.GROW)) this.size += this.halfTrait(PROP.GROW);
+    if (this.getTrait(PROP.FOOD)) this.size += this.halfTrait(PROP.FOOD);
     if (this.getTrait(PROP.PAIN)) this.size -= this.halfTrait(PROP.PAIN);
     if (this.getTrait(PROP.BOOST)) this.addTrait(PROP.BOOST, -1);
     if (this.getTrait(PROP.SPIKE)) this.addTrait(PROP.SPIKE, -1);
     // automaton
-    if (!this.name) {
-      // go to the closest food
-      if (anims.filter(a => a.type === TYPE.FOOD).length) {
-        let food = anims.filter(a => a.type === TYPE.FOOD).reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o, false);
-        if (!food) this.acc.mult(0.68);
-        else this.acc = p5.Vector.sub(food.pos, this.pos);
+    if (this.getTrait(PROP.EGG)) {
+      if (this.size > SIZE[TYPE.DROP] + SIZE[TYPE.CELL]) this.split();
+      else if (this.size < SIZE[TYPE.DROP]) this.addTrait(PROP.EGG, -this.getTrait(PROP.EGG));
+    }
+    if (this.type !== TYPE.PEARL) {
+      // go to the closest drop
+      if (anims.filter(a => a.type === TYPE.DROP).length) {
+        let drop = anims.filter(a => a.type === TYPE.DROP).reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o, false);
+        if (!drop) this.acc.mult(0.68);
+        else this.acc = p5.Vector.sub(drop.pos, this.pos);
       }
       //firing
       if (frameCount % (2 * FRAMERATE) < 1) this.fire();
     }
-    let targets = anims.filter(a => this !== a && a.type === TYPE.AGENT);
-    if (targets.length) {
-      this.bullseye = anims.filter(a => this !== a && a.type === TYPE.AGENT).reduce((b, a) => !b || this.pos.dist(a.pos) < this.pos.dist(b.pos) ? a : b);
-    }
+    let targets = anims.filter(a => this !== a && a.hasAgency);
+    if (targets.length) this.bullseye = targets.reduce((b, a) => !b || this.pos.dist(a.pos) < this.pos.dist(b.pos) ? a : b);
   }
 
   isTouching(target) {
@@ -393,39 +469,33 @@ class Animacule extends Drop {
   }
 
   collide(target) {
-    if (this.done) return;
-    if (target === this) return;
-    if (this.isTouching(target)) return;
-    if (target.type === TYPE.FOOD) {
+    let col = super.collide(target);
+    if (!col) return;
+    if (target.type === TYPE.DROP) {
       target.props.forEach(t => this.addTrait(t, target.size));
-      this.addTrait(PROP.GROW, target.size);
+      this.addTrait(PROP.FOOD, target.size);
       target.size = 0;
-      return;
-    }
-    if (target.type === TYPE.AGENT) {
+    } else if (target.hasAgency) {
       let hurt = 0;
-      let col = p5.Vector.add(target.pos, this.pos).mult(0.5);
       if (this.getTrait(PROP.SPIKE)) {
         hurt = min(3 * this.getTrait(PROP.SPIKE), target.size);
-        target.addTrait(PROP.PAIN, hurt);
+        target.addTrait(this.has(PROP.HALO) ? PROP.FOOD : PROP.PAIN, hurt);
+        this.addTrait(PROP.HALO, -hurt);
         this.addTrait(PROP.SPIKE, -hurt);
       }
-      // collision force
-      target.vel.add(p5.Vector.sub(target.pos, col).setMag(sqrt((this.size + hurt) / SIZE)));
+      target.vel.add(p5.Vector.sub(target.pos, col).setMag(sqrt(hurt / SIZE[TYPE.DOT])));
     }
+    return col;
   }
 }
 
-class Pearl extends Animacule {
-  constructor(opt = {}) {
-    opt.x = world.w2;
-    opt.y = world.h2;
-    super(opt);
-    this.color = colorAdd(this._color, {
-      l: 25
+class Pearl extends Cell {
+  constructor() {
+    super({
+      x: world.w2,
+      y: world.h2,
+      type: TYPE.PEARL,
+      props: [PROP.BOOST]
     });
-    this.speed *= 2;
-    this.name = 'Pearl';
-    this.props.push(PROP.BOOST);
   }
 }

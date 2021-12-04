@@ -11,14 +11,13 @@ let poseNet;
 let poses = [];
 let pause = false;
 
-let agents = [];
 let t = 0;
 let currentworld = 0;
 let dest, nose, lastNose, pointer;
 let pearl = {};
 let world = WORLD;
 
-let showInfo = false;
+let showInfo = true;
 
 // Teachable Machine model URL:
 let classifier;
@@ -34,13 +33,12 @@ function loadWorld(n = 0) {
   pause = true;
 
   world = Object.assign({}, WORLD);
+  anims = [];
   pearl = new Pearl({});
-  anims = [pearl];
-  agents = [];
   Object.assign(world, worlds[n]);
 
-  if (world.food) world.food.forEach(opt => new Drop(opt));
-  if (world.anims) world.anims.forEach(opt => new Animacule(opt));
+  if (world.drop) world.drop.forEach(opt => new Drop(opt));
+  if (world.anims) world.anims.forEach(opt => new Cell(opt));
 
   setPrompt(world.prompt);
 
@@ -56,7 +54,7 @@ function preload() {
 }
 
 function setup() {
-  frameRate(26);
+  frameRate(FRAMERATE);
 
   dest = createVector(WORLD.w2, WORLD.h2);
   nose = createVector(WORLD.w2, WORLD.h2);
@@ -177,7 +175,7 @@ function draw() {
   image(flippedVideo, 0, 0, world.w, world.h);
   // dark film
   noStroke();
-  fill(colorSet(0, 0.68));
+  fill(colorSet(0, 0.86));
   rect(0, 0, WORLD.w, WORLD.h);
 
   // find destination
@@ -193,7 +191,6 @@ function draw() {
   // deal with pearl
   if (!pearl.done) {
     pearl.acc = p5.Vector.sub(nose, pearl.pos);
-
     // draw destination
     push();
     noFill();
@@ -208,27 +205,6 @@ function draw() {
       polygon(0, 0, 5, 3);
     } else if (follow.value === FOLLOW.NOSE) circle(nose.x, nose.y, pearl.r * 0.68);
     pop()
-
-    // find pointer
-    if (follow.value === FOLLOW.MOUSE || !poses[0]) {
-      pointer = pearl.vel;
-    } else {
-      pointer = poses[0].pose.rightWrist;
-      pointer.x = world.w - pointer.x;
-      pointer = createVector(pointer.x, pointer.y);
-    }
-
-    if (follow.value !== FOLLOW.MOUSE || !poses[0]) {
-      let targets = agents.filter(a => pearl !== a)
-      if (targets.length) {
-        pointer.sub(pearl.pos);
-        pearl.bullseye = targets.reduce((b, a) => {
-          let angA = pointer.angleBetween(p5.Vector.sub(a.pos, pearl.pos));
-          let angB = pointer.angleBetween(p5.Vector.sub(b.pos, pearl.pos));
-          return !b || abs(angA) < abs(angB) ? a : b
-        });
-      } else pearl.bullseye = pointer;
-    }
   }
 
   // draw objects
@@ -239,18 +215,14 @@ function draw() {
   // updating things
   anims = anims.filter(anim => !anim.done);
   anims.forEach(anim => anim.update());
-  agents = anims.filter(a => a.type === TYPE.AGENT);
-  agents.forEach(agent => anims.forEach(a => agent.collide(a)));
-  if (world.foodrate && !(t % world.foodrate)) addFood();
+  anims.filter(a => a.hasAgency).forEach(cell => anims.forEach(a => cell.collide(a)));
+  if (world.droprate && !(t % world.droprate)) addFood();
 
-  if (pearl.done) {
-    gameOver();
-  } else {
-    // possible game ending
-    if (world.goal) {
-      if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
-      if (world.goal.time && t > world.goal.time) nextLevel();
-    }
+  // possible game endings
+  if (pearl.done) gameOver();
+  else if (world.goal) {
+    if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
+    if (world.goal.time && t > world.goal.time) nextLevel();
   }
 
   // game status report
@@ -271,14 +243,16 @@ function mouseClicked() {
   pearl.fire();
 }
 
-function addFood(props = []) {
-  if (typeof world.foodcap === 'number' && anims.filter(a => a.type === TYPE.FOOD).length >= world.foodcap) return;
-  if (world.boostrate && random() <= world.boostrate)
-    props.push(PROP.BOOST);
-  if (world.spikerate && random() <= world.spikerate)
-    props.push(PROP.SPIKE);
-  if (world.shotrate && random() <= world.shotrate)
-    props.push(PROP.SHOT);
+function addFood(props) {
+  if (typeof world.dropcap === 'number' && anims.filter(a => a.type === TYPE.DROP).length >= world.dropcap) return;
+  if (!props && world.rate) {
+    props = [];
+    Object.values(PROP).forEach(prop => {
+      let rate = world.rate[prop];
+      console.log(prop,rate);
+      if (rate && random() <= rate) props.push(prop);
+    })
+  }
   new Drop({
     props: props
   });
@@ -314,6 +288,8 @@ function gameOver() {
   setPrompt({
     h2: 'Game Over',
   });
+  setTimeout(() => loadWorld(currentworld), 3000);
+  pause = true;
 }
 
 function nextLevel() {
