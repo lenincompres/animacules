@@ -3,7 +3,8 @@ const setRate = (prop, val) => new Object({
   val: val
 });
 
-const worlds = [{
+const worlds = [
+  {
     prompt: {
       h2: 'This is Pearl.',
       p: 'Unlike other animacules, she has autonomy: can decide where to go, like <b>reach drop </b>.',
@@ -17,8 +18,7 @@ const worlds = [{
       size: SIZE[TYPE.CELL] + 1,
       color: 'springGreen'
     }
-  },
-  {
+  }, {
     prompt: {
       h2: 'Gotta be big.',
       p: 'Nothing else to do, but eat and <b>get big</b>?',
@@ -28,8 +28,7 @@ const worlds = [{
       size: 2 * SIZE[TYPE.CELL],
       color: 'springGreen'
     }
-  },
-  {
+  }, {
     prompt: {
       h2: "It's a hot one.",
       p: 'On hot days, pearl needs to <b>eat, in order to survive</b>.',
@@ -47,12 +46,10 @@ const worlds = [{
       p: "Others will eat too. Pearl must <b>avoid them in order to survive</b>.",
     },
     dropcap: 2,
-    anims: [
-      {
-        x: 0,
-        y: WORLD.h
-      }
-    ],
+    anims: [{
+      x: 0,
+      y: WORLD.h
+    }],
     goal: {
       time: 1000,
       color: 'springGreen'
@@ -63,8 +60,7 @@ const worlds = [{
       p: "Food is scarce. <b>Survive</b>.",
     },
     dropcap: 2,
-    anims: [
-      {
+    anims: [{
         x: 0,
         y: WORLD.h
       },
@@ -90,8 +86,7 @@ const worlds = [{
     rate: {
       spike: 0.4,
     },
-    anims: [
-      {
+    anims: [{
         x: 0,
         y: WORLD.h
       },
@@ -118,8 +113,7 @@ const worlds = [{
       spike: 0.2,
       boost: 0.4,
     },
-    anims: [
-      {
+    anims: [{
         x: 0,
         y: WORLD.h
       },
@@ -147,8 +141,7 @@ const worlds = [{
       boost: 0.2,
       shot: 0.4,
     },
-    anims: [
-      {
+    anims: [{
         x: 0,
         y: WORLD.h
       },
@@ -177,8 +170,7 @@ const worlds = [{
       shot: 0.2,
       egg: 0.4,
     },
-    anims: [
-      {
+    anims: [{
         x: 0,
         y: WORLD.h
       },
@@ -208,8 +200,7 @@ const worlds = [{
       egg: 0.2,
       halo: 0.4,
     },
-    anims: [
-      {
+    anims: [{
         x: 0,
         y: WORLD.h
       },
@@ -223,30 +214,58 @@ const worlds = [{
     }
   }, {
     prompt: {
-      h2: "Have Fun.",
+      h2: "Go invisible.",
       p: "There's no time limit here.",
     },
     dropcap: 4,
+    drop: [{
+      x: WORLD.w2,
+      y: WORLD.h * 0.86,
+      props: [PROP.GHOST]
+    }],
     rate: {
       spike: 0.2,
       boost: 0.2,
       shot: 0.2,
       egg: 0.2,
       halo: 0.2,
-      ghost: 0.2,
+      ghost: 0.4,
     },
-    anims: [
-      {
+    anims: [{
         x: 0,
         y: WORLD.h
       },
       {
         x: WORLD.w,
         y: WORLD.h
+      }
+    ]
+  }, {
+    prompt: {
+      h2: "Have Fun.",
+      p: "There's no time limit here.",
+    },
+    dropcap: 4,
+    drop: [{
+      x: WORLD.w2,
+      y: WORLD.h * 0.86,
+      props: [PROP.GHOST]
+    }],
+    rate: {
+      spike: 0.2,
+      boost: 0.2,
+      shot: 0.2,
+      egg: 0.2,
+      halo: 0.2,
+      ghost: 0.4,
+    },
+    anims: [{
+        x: 0,
+        y: WORLD.h
       },
       {
         x: WORLD.w,
-        y: 0
+        y: WORLD.h
       }
     ]
   }

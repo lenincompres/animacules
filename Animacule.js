@@ -23,8 +23,8 @@ const COLOR = {};
 COLOR[TYPE.DOT] = 'gray';
 COLOR[TYPE.BULLET] = 'red';
 COLOR[TYPE.DROP] = 'lime';
-COLOR[TYPE.CELL] = 'dodgerblue';
-COLOR[TYPE.PEARL] = 'skyblue';
+COLOR[TYPE.CELL] = 'royalBlue';
+COLOR[TYPE.PEARL] = 'lightSkyblue';
 
 const SIZE = {
   LINE: WORLD.w * WORLD.h / 200000
@@ -89,13 +89,6 @@ class Dot {
     return this._color;
   }
 
-  getLineColor() {
-    return colorAdd(this.color, {
-      l: 15,
-      a: 1
-    });
-  }
-
   set size(v) {
     this._z = v;
     this.r = sqrt(v / PI);
@@ -110,8 +103,8 @@ class Dot {
   inDraw(drawing = () => null) {
     push();
     translate(this.pos.x, this.pos.y);
-    fill(colorSet(this.color, 0.68));
-    stroke(this.getLineColor());
+    fill(colorAdd(this.color, -0.5));
+    stroke(this.color);
     strokeWeight(SIZE.LINE);
     push();
     drawing();
@@ -142,10 +135,14 @@ class Dot {
     }
   }
 
+  isTouching(target) {
+    return this.pos.dist(target.pos) <= this.r + target.r;
+  }
+
   collide(target) {
     if (this.done) return;
     if (target === this) return;
-    if (this.isTouching(target)) return;
+    if (!this.isTouching(target)) return;
     let col = p5.Vector.add(target.pos, this.pos).mult(0.5);
     target.vel.add(p5.Vector.sub(target.pos, col).setMag(sqrt(this.size / SIZE[TYPE.DOT])));
     return col;
@@ -185,6 +182,7 @@ class Bullet extends Dot {
     }
     anims.forEach(a => {
       if (this.done || !a.hasAgency || a.done) return;
+      if (a.has(PROP.GHOST)) return;
       points.forEach(p => {
         if (!this.done) this.done = a.pos.dist(p) < a.r;
       });
@@ -211,6 +209,15 @@ class Drop extends Dot {
     return this.props.includes(prop);
   }
 
+  get color() {
+    if (this.has(PROP.GHOST)) return colorAdd(this._color, -0.5);
+    return this._color;
+  }
+
+  set color(c) {
+    super.color = c;
+  }
+
   draw() {
     if (this.has(PROP.EGG)) this.drawEgg();
     super.draw();
@@ -229,7 +236,7 @@ class Drop extends Dot {
     let delta = PI / n;
     if (!d) d = SIZE.LINE * 2;
     this.inDraw(() => {
-      if (c) stroke(c);
+      if (c) stroke(colorSet(c, colorAlpha(this.color)));
       while (n) {
         rotate(delta);
         line(0, this.r, 0, this.r + d);
@@ -240,9 +247,11 @@ class Drop extends Dot {
   }
 
   drawFlag(a = 1, ang = 0, len = 1) {
+    a = min(a, 1);
     this.inDraw(() => {
       noFill();
-      stroke(colorSet(this.getLineColor(), a));
+      a *= colorAlpha(this.color);
+      stroke(colorSet(this.color, a));
       rotate(PI + vectorAng(this.acc) + ang);
       translate(this.r, 0);
       len = this.r * len;
@@ -257,27 +266,29 @@ class Drop extends Dot {
     });
   }
 
-  drawGun(a = frameCount / FRAMERATE, c) {
+  drawGun(ang = frameCount / FRAMERATE, c) {
     this.inDraw(() => {
-      rotate(a);
-      translate(this.r,0);
+      rotate(ang);
+      translate(this.r, 0);
       let z = SIZE.LINE * 5;
       let red = this.hasAgency ? 1 : 0.5;
       strokeWeight(SIZE.LINE);
-      if(c) stroke(c);
+      if (c) stroke(c);
       line(0, 0, 1.86 * z * red, 0);
       noStroke();
-      fill(this.getLineColor());
+      fill(this.color);
       polygon(z * 0.34 / red, 0, red * z, 3);
     });
-    this.gun = createVector(cos(a), sin(a)).setMag(this.r * 1.5);
+    this.gun = createVector(cos(ang), sin(ang)).setMag(this.r * 1.5);
   }
 
   drawHalo(a = 1) {
+    a = min(a, 1);
     this.inDraw(() => {
       noFill();
-      strokeWeight(SIZE.LINE * 0.5);
+      a *= colorAlpha(this.color);
       stroke(colorSet(COLOR[TYPE.DROP], a));
+      strokeWeight(SIZE.LINE * 0.5);
       circle(0, 0, this.d + SIZE.LINE * 4);
     });
   }
@@ -319,11 +330,14 @@ class Cell extends Drop {
   get color() {
     let r = this.getTrait(PROP.PAIN);
     let g = this.getTrait(PROP.FOOD);
-    return colorAdd(this._color, {
-      r: r - g,
-      g: g - r,
-      b: -r - g
-    })
+    let b = this.getTrait(PROP.GHOST);
+    let c = colorAdd(this._color, {
+      r: r - (g + b) * 0.5,
+      g: g - (r + b) * 0.5,
+      b: b - (r + g) * 0.5
+    });
+    let a = min(this.getTrait(PROP.GHOST) / 200, 0.5);
+    return colorAdd(c, -a);
   }
 
   get speed() {
@@ -371,7 +385,7 @@ class Cell extends Drop {
   drawEye() {
     this.inDraw(() => {
       rotate(vectorAng(this.acc));
-      fill(this.getLineColor());
+      fill(this.color);
       let d = this.r * 0.68;
       let m = map(this.acc.mag(), 0, this.speed, 0, d);
       circle(m, 0, d);
@@ -443,8 +457,10 @@ class Cell extends Drop {
     // reduce thse boost
     if (this.getTrait(PROP.FOOD)) this.size += this.halfTrait(PROP.FOOD);
     if (this.getTrait(PROP.PAIN)) this.size -= this.halfTrait(PROP.PAIN);
-    if (this.getTrait(PROP.BOOST)) this.addTrait(PROP.BOOST, -1);
-    if (this.getTrait(PROP.SPIKE)) this.addTrait(PROP.SPIKE, -1);
+    let dim = SIZE[TYPE.DOT] / FRAMERATE;
+    if (this.getTrait(PROP.BOOST)) this.addTrait(PROP.BOOST, -dim);
+    if (this.getTrait(PROP.SPIKE)) this.addTrait(PROP.SPIKE, -dim);
+    if (this.getTrait(PROP.GHOST)) this.addTrait(PROP.GHOST, -dim);
     // automaton
     if (this.getTrait(PROP.EGG)) {
       if (this.size > SIZE[TYPE.DROP] + SIZE[TYPE.CELL]) this.split();
@@ -460,17 +476,21 @@ class Cell extends Drop {
       //firing
       if (frameCount % (2 * FRAMERATE) < 1) this.fire();
     }
-    let targets = anims.filter(a => this !== a && a.hasAgency);
+    let targets = anims.filter(a => this !== a && a.hasAgency && !a.has(PROP.GHOST));
     if (targets.length) this.bullseye = targets.reduce((b, a) => !b || this.pos.dist(a.pos) < this.pos.dist(b.pos) ? a : b);
   }
 
   isTouching(target) {
-    return this.pos.dist(target.pos) > this.r + target.r;
+    if (target.hasAgency && (target.has(PROP.GHOST) || this.has(PROP.GHOST))) return false;
+    return super.isTouching(target);
   }
 
   collide(target) {
-    let col = super.collide(target);
-    if (!col) return;
+    if (this.done) return;
+    if (target === this) return;
+    if (!this.isTouching(target)) return;
+    let colVect = super.collide(target);
+    if (!colVect) return;
     if (target.type === TYPE.DROP) {
       target.props.forEach(t => this.addTrait(t, target.size));
       this.addTrait(PROP.FOOD, target.size);
@@ -483,9 +503,9 @@ class Cell extends Drop {
         this.addTrait(PROP.HALO, -hurt);
         this.addTrait(PROP.SPIKE, -hurt);
       }
-      target.vel.add(p5.Vector.sub(target.pos, col).setMag(sqrt(hurt / SIZE[TYPE.DOT])));
+      target.vel.add(p5.Vector.sub(target.pos, colVect).setMag(sqrt(hurt / SIZE[TYPE.DOT])));
     }
-    return col;
+    return colVect;
   }
 }
 
