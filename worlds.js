@@ -15,7 +15,7 @@ const worlds = [
       y: WORLD.h * 0.86
     }],
     goal: {
-      size: SIZE[TYPE.CELL] + 1,
+      size: SIZE[TYPE.CELL] + SIZE[TYPE.DROP],
       color: 'springGreen'
     }
   }, {
@@ -96,7 +96,7 @@ const worlds = [
       }
     ],
     goal: {
-      time: 3000
+      time: 30
     }
   }, {
     prompt: {
@@ -123,7 +123,7 @@ const worlds = [
       }
     ],
     goal: {
-      time: 3000
+      time: 30
     }
   }, {
     prompt: {
@@ -139,7 +139,7 @@ const worlds = [
     rate: {
       spike: 0.2,
       boost: 0.2,
-      shot: 0.4,
+      hurl: 0.4,
     },
     cells: [{
         x: 0,
@@ -151,7 +151,7 @@ const worlds = [
       }
     ],
     goal: {
-      time: 3000
+      time: 30
     }
   }, {
     prompt: {
@@ -167,7 +167,7 @@ const worlds = [
     rate: {
       spike: 0.2,
       boost: 0.2,
-      shot: 0.2,
+      hurl: 0.2,
       egg: 0.4,
     },
     cells: [{
@@ -180,7 +180,7 @@ const worlds = [
       }
     ],
     goal: {
-      time: 3000
+      time: 30
     }
   }, {
     prompt: {
@@ -196,7 +196,7 @@ const worlds = [
     rate: {
       spike: 0.2,
       boost: 0.2,
-      shot: 0.2,
+      hurl: 0.2,
       egg: 0.2,
       halo: 0.4,
     },
@@ -210,7 +210,7 @@ const worlds = [
       }
     ],
     goal: {
-      time: 3000
+      time: 30
     }
   }, {
     prompt: {
@@ -226,7 +226,7 @@ const worlds = [
     rate: {
       spike: 0.2,
       boost: 0.2,
-      shot: 0.2,
+      hurl: 0.2,
       egg: 0.2,
       halo: 0.2,
       ghost: 0.4,
@@ -239,7 +239,10 @@ const worlds = [
         x: WORLD.w,
         y: WORLD.h
       }
-    ]
+    ],
+    goal: {
+      time: 30
+    }
   }, {
     prompt: {
       h2: "Have Fun.",
@@ -249,7 +252,7 @@ const worlds = [
     rate: {
       spike: 0.1,
       boost: 0.1,
-      shot: 0.1,
+      hurl: 0.1,
       egg: 0.1,
       halo: 0.1,
       ghost: 0.1,

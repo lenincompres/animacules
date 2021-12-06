@@ -15,8 +15,7 @@ let pointer;
 let pearl = {};
 let world = WORLD;
 let pause = false;
-
-let showInfo = true;
+let showInfo = false;
 
 // Teachable Machine model URL:
 let classifier;
@@ -29,7 +28,7 @@ function preload() {
 function setup() {
   DOM.style({
     b: {
-      color: 'lime',
+      color: COLOR[TYPE.DROP],
       fontWeight: 'bold'
     },
     h: {
@@ -62,7 +61,10 @@ function setup() {
     header: {
       color: 'black',
       fontFamily: 'fantasy',
-      h1: 'Animacules',
+      h1: {
+        fontSize: '3em',
+        text: 'Animacules'
+      },
     },
     main: {
       position: 'relative',
@@ -237,7 +239,7 @@ function draw() {
       p: [
         'level: ' + currentworld,
         'time: ' + t,
-        'size: ' + pearl.size,
+        'size: ' + round(pearl.size),
         ...Object.entries(pearl.trait).map(([key, value]) => key + ': ' + value)
       ]
     }, true);
@@ -285,6 +287,10 @@ function keyPressed() {
   if (key === 'f') return new Drop({
     props: [PROP.HURL, PROP.SPIKE, PROP.TAIL]
   });
+  if (key === 'i') {
+    info.set({}, true);
+    showInfo = !showInfo
+  };
 }
 
 /* prompt */

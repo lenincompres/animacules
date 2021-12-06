@@ -1,6 +1,4 @@
 PENDING:
-- Spike have a max cap for pain, maybe a whole drop worth
-- Eggs grows alone with time, you grow with them. New eggs make growth faster.
 - Show time, when goal is to reach a time or for score
 - Show size, when goal is to reach a time or for score
 - world size to windows
@@ -8,7 +6,6 @@ PENDING:
 
 BUGS:
 - level dropdown update
-- projectiles sometimes bounce
 
 IDEAS:
 - Record people playing for documentations
