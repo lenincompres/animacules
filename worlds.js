@@ -5,46 +5,36 @@ const setRate = (prop, val) => new Object({
 
 const worlds = [
   {
-    prompt: {
-      h2: 'This is <b style=color:skyblue>Pearl</b> the animacule.',
-      p: 'She can decide where to go; like to <b>eat droplets</b>.',
-    },
+    title: 'This is Pearl, the animacule.',
+    tagline: 'Move your head about and <b>eat droplets</b>.',
     heat: 0,
     drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86
     }],
     goal: {
-      size: SIZE[TYPE.CELL] + SIZE[TYPE.DROP],
-      color: 'springGreen'
+      size: SIZE[TYPE.CELL] + SIZE[TYPE.DROP]
     }
   }, {
-    prompt: {
-      h2: 'Gotta be big.',
-      p: 'Nothing else to do, but <b>eat and grow</b>?',
-    },
+    title: 'Gotta be big.',
+    tagline: 'Nothing else to do, but <b>eat and grow</b>.',
     heat: 0,
     goal: {
       size: SIZE[TYPE.CELL] + SIZE[TYPE.DROP] * 4,
       color: 'springGreen'
     }
   }, {
-    prompt: {
-      h2: "It's a hot day.",
-      p: 'Pearl needs to eat, in order to <b>survive (for 30 counts)</b>.',
-    },
+    title: "It's a hot day.",
+    tagline: 'Pearl needs to eat to <b>survive long enough</b>.',
     dropcap: 1,
     droprate: 50,
     heat: 2,
     goal: {
-      time: 30,
-      color: 'skyBlue'
+      time: 30
     }
   }, {
-    prompt: {
-      h2: "Competition",
-      p: "Pearl must <b>compete for droplets</b> in order to survive.",
-    },
+    title: "You're not alone.",
+    tagline: "Pearl must <b>compete for droplets</b>.",
     dropcap: 2,
     cells: [{
       x: 0,
@@ -55,10 +45,8 @@ const worlds = [
       color: 'springGreen'
     }
   }, {
-    prompt: {
-      h2: "Scarcity",
-      p: "There's 3 animacules, yet only <b>2 droplets at a time</b>.",
-    },
+    title: "Face scarsity.",
+    tagline: "There's 3 or you, yet <b>2 droplets at a time</b>.",
     dropcap: 2,
     cells: [{
         x: 0,
@@ -73,16 +61,14 @@ const worlds = [
       time: 30
     }
   }, {
-    prompt: {
-      h2: "Yikes!",
-      p: "Some droplets give abilities, like <b>spikes that hurt others</b>.",
-    },
+    title: "Ow! That hurts!",
+    tagline: "You can get <b>temporary traits</b>, like spikes.",
     drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.SPIKE]
     }],
-    dropcap: 3,
+    dropcap: 2,
     rate: {
       spike: 0.4,
     },
@@ -99,19 +85,17 @@ const worlds = [
       time: 30
     }
   }, {
-    prompt: {
-      h2: "Wave your flagella.",
-      p: "This one gives a tail to <b>move faster</b> for a limited time.",
-    },
+    title: "Wave your flagella.",
+    tagline: "This one has a <b>tail to move faster</b> for a limited time.",
     drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.TAIL]
     }],
-    dropcap: 3,
+    dropcap: 2,
     rate: {
       spike: 0.2,
-      boost: 0.4,
+      tail: 0.4,
     },
     cells: [{
         x: 0,
@@ -126,16 +110,14 @@ const worlds = [
       time: 30
     }
   }, {
-    prompt: {
-      h2: "Shoot'm up.",
-      p: "Hurl projetiles at the nearest animacule by <b>shouting: «PEW PEW!»<b>.",
-    },
+    title: "Spew, pew, pew.",
+    tagline: ["Hurl projetiles at nearest animacule, by saying: <b>pew pew!<b>"],
     drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.HURL]
     }],
-    dropcap: 3,
+    dropcap: 2,
     rate: {
       spike: 0.2,
       boost: 0.2,
@@ -154,16 +136,14 @@ const worlds = [
       time: 30
     }
   }, {
-    prompt: {
-      h2: "Reproduction happens.",
-      p: "Grow eggs inside until you <b>get big enought to split</b>.",
-    },
+    title: "Reproduction happens.",
+    tagline: "Grow an egg until it splits.You'll <b>grow with it</b>.",
     drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.EGG]
     }],
-    dropcap: 3,
+    dropcap: 2,
     rate: {
       spike: 0.2,
       boost: 0.2,
@@ -183,16 +163,14 @@ const worlds = [
       time: 30
     }
   }, {
-    prompt: {
-      h2: "Now nurture",
-      p: "With a halo around you, projectiles and spikes will <b>feed others</b>.",
-    },
+    title: "And now, nurture",
+    tagline: "A halo makes projectiles and spikes <b>feed others</b>.",
     drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.HALO]
     }],
-    dropcap: 3,
+    dropcap: 2,
     rate: {
       spike: 0.2,
       boost: 0.2,
@@ -213,10 +191,8 @@ const worlds = [
       time: 30
     }
   }, {
-    prompt: {
-      h2: "Go invisible.",
-      p: "With this neat trick <b>others won't see or touch you</b>.",
-    },
+    title: "Disembodied, at last",
+    tagline: "You will <b>not be seen or touched</b>.",
     dropcap: 4,
     drops: [{
       x: WORLD.w2,
@@ -244,10 +220,8 @@ const worlds = [
       time: 30
     }
   }, {
-    prompt: {
-      h2: "Have Fun.",
-      p: "There's no time limit here.",
-    },
+    title: "Have Fun.",
+    tagline: "There's <b>no time limit</b> here.",
     dropcap: 4,
     rate: {
       spike: 0.1,

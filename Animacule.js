@@ -34,8 +34,7 @@ SIZE[TYPE.BULLET] = 2 * SIZE[TYPE.DOT];
 SIZE[TYPE.DROP] = 5 * SIZE[TYPE.DOT];
 SIZE[TYPE.CELL] = 10 * SIZE[TYPE.DROP];
 SIZE[TYPE.PEARL] = 10 * SIZE[TYPE.DROP];
-SIZE.BABY = 3 * SIZE[TYPE.DROP];
-SIZE.MOM = SIZE[TYPE.CELL] + SIZE[TYPE.DROP] + 1;
+SIZE.BABY = 4 * SIZE[TYPE.DROP];
 
 const PROP = {
   GAIN: 'gain',
@@ -56,7 +55,7 @@ const SAY = {
   BOOM: 'boom', // dart all spikes
 }
 
-const SPEED = 3 * SIZE.LINE / FRAMERATE;
+const SPEED = 4 * SIZE.LINE / FRAMERATE;
 
 let anims = [];
 
@@ -136,12 +135,12 @@ class Dot {
   }
 
   isTouching(target) {
+    if (target.type === TYPE.BULLET) return false;
     return this.pos.dist(target.pos) <= this.radius + target.radius;
   }
 
   collide(target) {
-    if (this.done) return;
-    if (target === this) return;
+    if (this.done || target === this) return;
     if (!this.isTouching(target)) return;
     let col = p5.Vector.add(target.pos, this.pos).mult(0.5);
     target.vel.add(p5.Vector.sub(target.pos, col).setMag(sqrt(this.size / SIZE[TYPE.DOT])));
@@ -184,7 +183,7 @@ class Bullet extends Dot {
       if (this.done) {
         if (this.isHalo) cell.addTrait(PROP.GAIN, this.size);
         else {
-          cell.addTrait(PROP.PAIN, this.size);
+          cell.addTrait(PROP.PAIN, 2 * this.size);
           cell.vel.add(this.vel.mult(10 * this.size / cell.size));
         }
       }
@@ -333,9 +332,8 @@ class Cell extends Drop {
 
   get speed() {
     if (!this.props) return this._speed;
-    let pTAIL = this.props.includes(PROP.TAIL) ? this._speed : 0;
-    let tTAIL = min(this._speed, this.getTrait(PROP.TAIL));
-    return this._speed + tTAIL + pTAIL;
+    let tail = min(SPEED, this.getTrait(PROP.TAIL));
+    return this._speed + tail;
   }
 
   set speed(v) {
@@ -374,16 +372,13 @@ class Cell extends Drop {
 
   draw() {
     super.draw();
-    this.drawEye()
-  }
-
-  drawEye() {
     this.inDraw(() => {
       rotate(vectorAng(this.acc));
       fill(this.color);
-      let d = this.radius * 0.68;
-      let m = map(this.acc.mag(), 0, this.speed, 0, d);
-      circle(m, 0, d);
+      noStroke;
+      let radius = this.radius * 0.75;
+      let x = map(this.acc.mag(), 0, this.speed, 0, this.radius - radius * 0.5);
+      circle(x, 0, radius);
     });
   }
 
@@ -409,7 +404,6 @@ class Cell extends Drop {
   }
 
   drawFlag() {
-    let n = 0;
     if (this.props.includes(PROP.TAIL)) super.drawFlag(0.68, 0);
     if (!this.getTrait(PROP.TAIL)) return;
     super.drawFlag(this.getTrait(PROP.TAIL) / SIZE[TYPE.DOT]);
@@ -526,5 +520,6 @@ class Pearl extends Cell {
       type: TYPE.PEARL,
       props: [PROP.TAIL]
     });
+    this.speed = SPEED * 1.5
   }
 }

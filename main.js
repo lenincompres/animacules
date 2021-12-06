@@ -31,6 +31,13 @@ function setup() {
       color: COLOR[TYPE.DROP],
       fontWeight: 'bold'
     },
+    i: {
+      color: COLOR[TYPE.PEARL]
+    },
+    small: {
+      textTransform: 'uppercase',
+      fontSize: '0.68em'
+    },
     h: {
       fontFamily: 'title'
     },
@@ -60,38 +67,57 @@ function setup() {
     backgroundColor: '#def',
     header: {
       color: 'black',
-      fontFamily: 'fantasy',
       h1: {
         fontSize: '3em',
         text: 'Animacules'
       },
+      p: {
+        fontSize: '1.25em',
+        id: 'levelTitle'
+      }
     },
-    main: {
-      position: 'relative',
-      width: world.w + 'px',
-      margin: '0 auto',
-      canvas: createCanvas(WORLD.w, WORLD.h),
-      aside: [{
-        div: {
-          id: 'promptElem',
-          margin: '2em',
-          fontSize: '1.34em',
-          transition: '0.5s',
-          opacity: 0,
-        },
-        width: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        color: 'white'
-      }, {
-        id: 'info',
-        color: 'gray',
-        textAlign: 'left',
-        top: 0,
-        margin: '1em',
-        position: 'absolute',
-      }],
+    section: {
+      main: {
+        position: 'relative',
+        width: world.w + 'px',
+        height: world.h + 'px',
+        margin: '0 auto',
+        canvas: createCanvas(WORLD.w, WORLD.h),
+        aside: [{
+            css:{
+              _h2:{
+                color: COLOR[TYPE.PEARL]
+              }
+            },
+          div: {
+            id: 'promptElem',
+            margin: WORLD.h * 0.25 + 'px 2em',
+            fontSize: '1.34em',
+            transition: '0.5s',
+            opacity: 0,
+          },
+          width: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          color: 'white'
+        }, {
+          id: 'infoElem',
+          color: 'gray',
+          textAlign: 'left',
+          top: 0,
+          margin: '1em',
+          position: 'absolute',
+        }, {
+          id: 'timeline',
+          position: 'absolute',
+          background: COLOR[TYPE.DROP],
+          bottom: 0,
+          left: 0,
+          width: 0,
+          height: 2 * SIZE.LINE + 'pt',
+        }]
+      },
       menu: {
         margin: '0 0 0.5em',
         span: [{
@@ -160,12 +186,18 @@ function loadLevel(level = 0) {
   // add level items
   if (world.drops) world.drops.forEach(opt => new Drop(opt));
   if (world.cells) world.cells.forEach(opt => new Cell(opt));
-  setPrompt(world.prompt);
+  setPrompt({
+    h2: world.title,
+    p: world.tagline
+  });
   // start level
   currentworld = level;
   levelSelect.value = level;
   t = 0;
   pause = false;
+
+  levelTitle.set(`Chapter ${level+1}: ${world.title}`);
+  timeline.set(0, 'width');
 }
 
 // The model recognizing a sound will trigger this event
@@ -230,12 +262,15 @@ function draw() {
   if (pearl.done) gameOver();
   else if (world.goal) {
     if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
-    if (world.goal.time && t > world.goal.time * FRAMERATE) nextLevel();
+    if (world.goal.time) {
+      if (t > world.goal.time * FRAMERATE) nextLevel();
+      timeline.set((t / FRAMERATE) * 100 / world.goal.time + '%', 'width');
+    }
   }
 
   // game status report
   if (showInfo) {
-    info.set({
+    infoElem.set({
       p: [
         'level: ' + currentworld,
         'time: ' + t,
@@ -288,7 +323,7 @@ function keyPressed() {
     props: [PROP.HURL, PROP.SPIKE, PROP.TAIL]
   });
   if (key === 'i') {
-    info.set({}, true);
+    infoElem.set({}, true);
     showInfo = !showInfo
   };
 }
@@ -305,7 +340,7 @@ function gameOver() {
 
 function nextLevel() {
   setPrompt({
-    h4: 'Good job Pearl!'
+    h4: 'Good job, Pearl!'
   });
   setTimeout(() => loadLevel(currentworld + 1), 3000);
   pause = true;
