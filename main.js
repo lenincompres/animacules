@@ -7,61 +7,34 @@ const FOLLOW = {
 
 // Video
 let video;
-let poseNet;
 let poses = [];
-let pause = false;
 
 let t = 0;
 let currentworld = 0;
-let dest, nose, lastNose, pointer;
+let pointer;
 let pearl = {};
 let world = WORLD;
+let pause = false;
 
 let showInfo = true;
 
 // Teachable Machine model URL:
 let classifier;
-//let soundModel = './tm/';
 let soundModel = 'https://teachablemachine.withgoogle.com/models/_WKomoh3c/';
 
-function loadWorld(n = 0) {
-  n = parseInt(n);
-  if (!worlds[n]) return setPrompt({
-    h2: "All done!",
-    p: "That was the last level."
-  });
-  pause = true;
-
-  world = Object.assign({}, WORLD);
-  anims = [];
-  pearl = new Pearl({});
-  Object.assign(world, worlds[n]);
-
-  if (world.drop) world.drop.forEach(opt => new Drop(opt));
-  if (world.anims) world.anims.forEach(opt => new Cell(opt));
-
-  setPrompt(world.prompt);
-
-  currentworld = n;
-  levelSelect.value = n;
-  pause = false;
-  t = 0;
-}
-
 function preload() {
-  // Load the model
   classifier = ml5.soundClassifier(soundModel + 'model.json');
 }
 
 function setup() {
-  frameRate(FRAMERATE);
-
-  dest = createVector(WORLD.w2, WORLD.h2);
-  nose = createVector(WORLD.w2, WORLD.h2);
-  lastNose = createVector(WORLD.w2, WORLD.h2);
-  pointer = createVector(WORLD.w2, WORLD.h2);
-
   DOM.style({
+    b: {
+      color: 'lime',
+      fontWeight: 'bold'
+    },
+    h: {
+      fontFamily: 'title'
+    },
     select: {
       border: 'none',
       margin: '0 2em 0 0',
@@ -73,12 +46,50 @@ function setup() {
 
   DOM.set({
     title: 'Animacules - Game',
+    description: 'Use gestures and voice to survive as a microscopic organism.',
+    keywords: 'game,p5,ml5,poseNet,lenino,lenin compres',
+    viewport: 'width=device-width,initial-scale=1',
+    font: [{
+      fontFamily: 'main',
+      src: 'url(assets/Biryani-Light.ttf)'
+    }, {
+      fontFamily: 'title',
+      src: 'url(assets/FredokaOne-Regular.ttf)'
+    }],
+    fontFamily: 'main',
     textAlign: 'center',
     backgroundColor: '#def',
     header: {
       color: 'black',
       fontFamily: 'fantasy',
       h1: 'Animacules',
+    },
+    main: {
+      position: 'relative',
+      width: world.w + 'px',
+      margin: '0 auto',
+      canvas: createCanvas(WORLD.w, WORLD.h),
+      aside: [{
+        div: {
+          id: 'promptElem',
+          margin: '2em',
+          fontSize: '1.34em',
+          transition: '0.5s',
+          opacity: 0,
+        },
+        width: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        color: 'white'
+      }, {
+        id: 'info',
+        color: 'gray',
+        textAlign: 'left',
+        top: 0,
+        margin: '1em',
+        position: 'absolute',
+      }],
       menu: {
         margin: '0 0 0.5em',
         span: [{
@@ -95,7 +106,7 @@ function setup() {
           label: 'Level:',
           select: {
             id: 'levelSelect',
-            onchange: e => loadWorld(e.target.value),
+            onchange: e => loadLevel(e.target.value),
             option: worlds.map((w, i) => new Object({
               text: i + 1,
               value: i
@@ -103,34 +114,6 @@ function setup() {
           }
         }]
       }
-    },
-    main: {
-      position: 'relative',
-      width: world.w + 'px',
-      margin: '0 auto',
-      canvas: createCanvas(WORLD.w, WORLD.h),
-      aside: {
-        div: {
-          id: 'promptElem',
-          margin: '2em',
-          fontFamily: 'fantasy',
-          fontSize: '1.34em',
-          transition: '0.5s',
-          opacity: 0,
-        },
-        width: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        color: 'white'
-      }
-    },
-    aside: {
-      id: 'info',
-      textAlign: 'left',
-      top: 0,
-      margin: '1em',
-      position: 'fixed',
     },
     footer: {
       width: '100%',
@@ -143,19 +126,44 @@ function setup() {
     }
   });
 
+  // Create a new poseNet method with a single detection
   video = createCapture(VIDEO);
   video.size(world.w, world.h);
   video.hide();
-  // Create a new poseNet method with a single detection
-  poseNet = ml5.poseNet(video, modelReady);
-  // This sets up an event that fills the global variable "poses"
-  // with an array every time new poses are detected
+  let poseNet = ml5.poseNet(video, modelReady);
   poseNet.on('pose', results => poses = results);
 
-  loadWorld(0);
-
-  //pew model
+  // sound model from teachable machine
   classifier.classify(soundMade);
+
+  frameRate(FRAMERATE);
+  pointer = createVector(WORLD.w2, WORLD.h2);
+  loadLevel(0);
+}
+
+function loadLevel(level = 0) {
+  level = parseInt(level);
+
+  if (!worlds[level]) return setPrompt({
+    h2: "All done!",
+    p: "That was the last level."
+  });
+
+  pause = true;
+  // reinitiate variables
+  world = Object.assign({}, WORLD);
+  anims = [];
+  pearl = new Pearl({});
+  Object.assign(world, worlds[level]);
+  // add level items
+  if (world.drops) world.drops.forEach(opt => new Drop(opt));
+  if (world.cells) world.cells.forEach(opt => new Cell(opt));
+  setPrompt(world.prompt);
+  // start level
+  currentworld = level;
+  levelSelect.value = level;
+  t = 0;
+  pause = false;
 }
 
 // The model recognizing a sound will trigger this event
@@ -167,43 +175,41 @@ function soundMade(error, results) {
 
 function draw() {
   t += 1;
-
   // black base
   background(0);
   // draw video
-  const flippedVideo = ml5.flipImage(video);
-  image(flippedVideo, 0, 0, world.w, world.h);
-  // dark film
-  noStroke();
-  fill(colorSet(0, 0.86));
+  image(ml5.flipImage(video), 0, 0, world.w, world.h);
+  // dark heat film
+  push();
+  fill(colorSet(0, {
+    r: world.heat * 10,
+    g: world.heat * 5,
+    a: 0.86
+  }));
   rect(0, 0, WORLD.w, WORLD.h);
+  pop();
 
-  // find destination
-  lastNose = createVector(nose.x, nose.y);
+  // find nose/mouse
   if (follow.value === FOLLOW.MOUSE) {
-    nose = createVector(mouseX, mouseY);
+    pointer = createVector(mouseX, mouseY);
   } else if (poses[0] && poses[0].pose && poses[0].pose.nose) {
-    nose = poses[0].pose.nose;
-    nose = createVector(WORLD.w - nose.x, nose.y);
-    if (follow.value === FOLLOW.DEFAULT) nose = createVector(pearl.pos.x + nose.x - world.w2, pearl.pos.y + nose.y - world.h2);
+    pointer = poses[0].pose.nose;
+    pointer = createVector(WORLD.w - pointer.x, pointer.y);
+    if (follow.value === FOLLOW.DEFAULT) pointer = createVector(pearl.pos.x + pointer.x - world.w2, pearl.pos.y + pointer.y - world.h2);
   }
 
-  // deal with pearl
+  // pearl updates
   if (!pearl.done) {
-    pearl.acc = p5.Vector.sub(nose, pearl.pos);
-    // draw destination
+    let intent = p5.Vector.sub(pointer, pearl.pos);
+    pearl.acc = vectorClone(intent);
+    // draw intendend movement
     push();
     noFill();
-    let c = colorSet(pearl.color, 0.68)
-    stroke(c);
-    if (follow.value === FOLLOW.DEFAULT) {
-      line(pearl.pos.x, pearl.pos.y, nose.x, nose.y);
-      noStroke();
-      fill(c);
-      translate(nose.x, nose.y);
-      rotate(vectorAng(pearl.acc));
-      polygon(0, 0, 5, 3);
-    } else if (follow.value === FOLLOW.NOSE) circle(nose.x, nose.y, pearl.r * 0.68);
+    let colour = colorSet(pearl.color, 0.68)
+    stroke(colour);
+    translate(pearl.pos.x, pearl.pos.y);
+    if (follow.value === FOLLOW.NOSE) circle(intent.x, intent.y, pearl.r * 0.68);
+    else if (follow.value === FOLLOW.DEFAULT) arrow(intent, colour);
     pop()
   }
 
@@ -222,7 +228,7 @@ function draw() {
   if (pearl.done) gameOver();
   else if (world.goal) {
     if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
-    if (world.goal.time && t > world.goal.time) nextLevel();
+    if (world.goal.time && t > world.goal.time * FRAMERATE) nextLevel();
   }
 
   // game status report
@@ -249,7 +255,6 @@ function addFood(props) {
     props = [];
     Object.values(PROP).forEach(prop => {
       let rate = world.rate[prop];
-      console.log(prop,rate);
       if (rate && random() <= rate) props.push(prop);
     })
   }
@@ -266,19 +271,19 @@ function modelReady() {
 /*  */
 
 function keyPressed() {
-  if (keyCode === UP_ARROW) return loadWorld(currentworld + 1);
-  if (keyCode === DOWN_ARROW) return loadWorld(currentworld - 1);
+  if (keyCode === UP_ARROW) return loadLevel(currentworld + 1);
+  if (keyCode === DOWN_ARROW) return loadLevel(currentworld - 1);
   if (key === 'a') return new Drop({
-    props: [PROP.BOOST]
+    props: [PROP.TAIL]
   });
   if (key === 's') return new Drop({
-    props: [PROP.SHOT]
+    props: [PROP.HURL]
   });
   if (key === 'd') return new Drop({
     props: [PROP.SPIKE]
   });
   if (key === 'f') return new Drop({
-    props: [PROP.SHOT, PROP.SPIKE, PROP.BOOST]
+    props: [PROP.HURL, PROP.SPIKE, PROP.TAIL]
   });
 }
 
@@ -288,15 +293,15 @@ function gameOver() {
   setPrompt({
     h2: 'Game Over',
   });
-  setTimeout(() => loadWorld(currentworld), 3000);
+  setTimeout(() => loadLevel(currentworld), 3000);
   pause = true;
 }
 
 function nextLevel() {
   setPrompt({
-    h4: 'Good job.'
+    h4: 'Good job Pearl!'
   });
-  setTimeout(() => loadWorld(currentworld + 1), 3000);
+  setTimeout(() => loadLevel(currentworld + 1), 3000);
   pause = true;
 }
 
@@ -311,12 +316,6 @@ function setPrompt(model, close = true) {
     pointerEvents: 'all'
   }, true);
   if (close) promptTimeout = setTimeout(closePrompt, 5000);
-
-  setTimeout(() => {
-    let bs = promptElem.get('b');
-    if (!bs || !world.goal.color) return;
-    bs.forEach(b => b.set(world.goal.color, 'color'))
-  }, 100);
 }
 
 function closePrompt(callback) {

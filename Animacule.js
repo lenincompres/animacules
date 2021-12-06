@@ -34,20 +34,20 @@ SIZE[TYPE.BULLET] = 2 * SIZE[TYPE.DOT];
 SIZE[TYPE.DROP] = 5 * SIZE[TYPE.DOT];
 SIZE[TYPE.CELL] = 10 * SIZE[TYPE.DROP];
 SIZE[TYPE.PEARL] = 10 * SIZE[TYPE.DROP];
+SIZE.BABY = 3 * SIZE[TYPE.DROP];
+SIZE.MOM = SIZE[TYPE.CELL] + SIZE[TYPE.DROP] + 1;
 
 const PROP = {
-  FOOD: 'food',
+  GAIN: 'gaun',
   PAIN: 'pain',
-  BOOST: 'boost',
+  TAIL: 'tail',
   SPIKE: 'spike',
-  SHOT: 'shot',
+  HURL: 'hurl',
   EGG: 'egg', // (*) get big enough and have a new generation
   HALO: 'halo', // gun that shoots food at others
   GHOST: 'ghost', // transparent to bullets and others
   CHOMP: 'chomp', // ability to break drop piece from others
-  /*
   BLIND: 'blind', // can't seek drop or point shoot
-  */
 }
 
 const SAY = {
@@ -187,7 +187,7 @@ class Bullet extends Dot {
         if (!this.done) this.done = a.pos.dist(p) < a.r;
       });
       if (this.done) {
-        if (this.isHalo) a.addTrait(PROP.FOOD, this.size);
+        if (this.isHalo) a.addTrait(PROP.GAIN, this.size);
         else {
           a.addTrait(PROP.PAIN, this.size);
           a.vel.add(this.vel.mult(10 * this.size / a.size));
@@ -221,14 +221,14 @@ class Drop extends Dot {
   draw() {
     if (this.has(PROP.EGG)) this.drawEgg();
     super.draw();
-    if (this.has(PROP.BOOST)) {
+    if (this.has(PROP.TAIL)) {
       this.drawFlag();
       if (this.type === TYPE.DROP) this.drawFlag(1, PI);
     }
     if (this.has(PROP.HALO)) this.drawHalo()
-    if (this.has(PROP.BOOST)) this.drawFlag();
+    if (this.has(PROP.TAIL)) this.drawFlag();
     if (this.has(PROP.SPIKE)) this.drawSpikes();
-    if (this.has(PROP.SHOT)) this.drawGun();
+    if (this.has(PROP.HURL)) this.drawGun();
   }
 
   drawSpikes(d, c) {
@@ -236,7 +236,10 @@ class Drop extends Dot {
     let delta = PI / n;
     if (!d) d = SIZE.LINE * 2;
     this.inDraw(() => {
-      if (c) stroke(colorSet(c, colorAlpha(this.color)));
+      if (c) {
+        strokeWeight(SIZE.LINE * 0.68);
+        stroke(colorSet(c, colorAlpha(this.color)));
+      }
       while (n) {
         rotate(delta);
         line(0, this.r, 0, this.r + d);
@@ -293,15 +296,12 @@ class Drop extends Dot {
     });
   }
 
-  drawEgg(outline = false) {
+  drawEgg() {
     this.inDraw(() => {
-      let r = min(sqrt(2 * SIZE[TYPE.DROP] / PI), this.r);
+      let r = sqrt(SIZE[TYPE.DROP] / PI);
       let len = r * 0.5;
-      strokeWeight(SIZE.LINE * 1.5);
       line(-len, 0, len, 0);
       line(0, -len, 0, len);
-      strokeWeight(SIZE.LINE * 0.5);
-      if (outline) circle(0, 0, 2 * r);
     });
   }
 
@@ -329,7 +329,7 @@ class Cell extends Drop {
 
   get color() {
     let r = this.getTrait(PROP.PAIN);
-    let g = this.getTrait(PROP.FOOD);
+    let g = this.getTrait(PROP.GAIN);
     let b = this.getTrait(PROP.GHOST);
     let c = colorAdd(this._color, {
       r: r - (g + b) * 0.5,
@@ -342,9 +342,9 @@ class Cell extends Drop {
 
   get speed() {
     if (!this.props) return this._speed;
-    let pBoost = this.props.includes(PROP.BOOST) ? this._speed : 0;
-    let tBoost = min(this._speed, this.getTrait(PROP.BOOST));
-    return this._speed + tBoost + pBoost;
+    let pTAIL = this.props.includes(PROP.TAIL) ? this._speed : 0;
+    let tTAIL = min(this._speed, this.getTrait(PROP.TAIL));
+    return this._speed + tTAIL + pTAIL;
   }
 
   set speed(v) {
@@ -393,7 +393,7 @@ class Cell extends Drop {
   }
 
   drawGun() {
-    if (!this.getTrait(PROP.SHOT)) return;
+    if (!this.getTrait(PROP.HURL)) return;
     if (!this.pointAng) this.pointAng = 0;
     let a = frameCount / FRAMERATE;
     if (this.bullseye && this.bullseye.pos) {
@@ -414,9 +414,9 @@ class Cell extends Drop {
 
   drawFlag() {
     let n = 0;
-    if (this.props.includes(PROP.BOOST)) super.drawFlag(1, 0, 0.68);
-    if (!this.getTrait(PROP.BOOST)) return;
-    super.drawFlag(this.getTrait(PROP.BOOST) / SIZE[TYPE.DOT]);
+    if (this.props.includes(PROP.TAIL)) super.drawFlag(1, 0, 0.68);
+    if (!this.getTrait(PROP.TAIL)) return;
+    super.drawFlag(this.getTrait(PROP.TAIL) / SIZE[TYPE.DOT]);
   }
 
   drawHalo() {
@@ -426,18 +426,28 @@ class Cell extends Drop {
 
   drawEgg() {
     if (!this.getTrait(PROP.EGG)) return;
-    super.drawEgg(true);
+    this.inDraw(() => {
+      let size = min(this.size, SIZE.MOM);
+      let a = map(size, SIZE.BABY, SIZE.MOM, 0, 1);
+      let r = 2 * sqrt(SIZE.BABY / PI);
+      noStroke();
+      circle(0, 0, r * a);
+      noFill();
+      stroke(this.color);
+      strokeWeight(SIZE.LINE * 0.5);
+      circle(0, 0, r);
+    })
   }
 
   fire() {
-    if (!this.getTrait(PROP.SHOT)) return;
+    if (!this.getTrait(PROP.HURL)) return;
     let bullet = new Bullet({
       x: this.pos.x + this.gun.x,
       y: this.pos.y + this.gun.y,
       vel: this.gun,
       shooter: this
     });
-    this.addTrait(PROP.SHOT, -bullet.size);
+    this.addTrait(PROP.HURL, -bullet.size);
     this.addTrait(PROP.HALO, -bullet.size);
   }
 
@@ -446,25 +456,26 @@ class Cell extends Drop {
       x: this.pos.x,
       y: this.pos.y
     });
-    baby.size = 2 * SIZE[TYPE.DROP];
-    this.addTrait(PROP.EGG, -baby.size);
-    this.size -= baby.size;
+    baby.size = SIZE.BABY;
+    this.addTrait(PROP.EGG, -SIZE.BABY);
+    this.size -= SIZE.BABY;
   }
 
   update() {
     super.update();
     this.acc.limit(this.speed);
-    // reduce thse boost
-    if (this.getTrait(PROP.FOOD)) this.size += this.halfTrait(PROP.FOOD);
+    // reduce thse TAIL
+    if (this.getTrait(PROP.GAIN)) this.size += this.halfTrait(PROP.GAIN);
     if (this.getTrait(PROP.PAIN)) this.size -= this.halfTrait(PROP.PAIN);
     let dim = SIZE[TYPE.DOT] / FRAMERATE;
-    if (this.getTrait(PROP.BOOST)) this.addTrait(PROP.BOOST, -dim);
+    if (this.getTrait(PROP.TAIL)) this.addTrait(PROP.TAIL, -dim);
     if (this.getTrait(PROP.SPIKE)) this.addTrait(PROP.SPIKE, -dim);
     if (this.getTrait(PROP.GHOST)) this.addTrait(PROP.GHOST, -dim);
+    if (this.getTrait(PROP.HALO)) this.addTrait(PROP.HALO, -dim * 0.5);
     // automaton
     if (this.getTrait(PROP.EGG)) {
-      if (this.size > SIZE[TYPE.DROP] + SIZE[TYPE.CELL]) this.split();
-      else if (this.size < SIZE[TYPE.DROP]) this.addTrait(PROP.EGG, -this.getTrait(PROP.EGG));
+      if (this.size >= SIZE.MOM) this.split();
+      else if (this.size < SIZE.BABY) this.addTrait(PROP.EGG, -this.getTrait(PROP.EGG));
     }
     if (this.type !== TYPE.PEARL) {
       // go to the closest drop
@@ -493,13 +504,13 @@ class Cell extends Drop {
     if (!colVect) return;
     if (target.type === TYPE.DROP) {
       target.props.forEach(t => this.addTrait(t, target.size));
-      this.addTrait(PROP.FOOD, target.size);
+      this.addTrait(PROP.GAIN, target.size);
       target.size = 0;
     } else if (target.hasAgency) {
       let hurt = 0;
       if (this.getTrait(PROP.SPIKE)) {
         hurt = min(3 * this.getTrait(PROP.SPIKE), target.size);
-        target.addTrait(this.has(PROP.HALO) ? PROP.FOOD : PROP.PAIN, hurt);
+        target.addTrait(this.has(PROP.HALO) ? PROP.GAIN : PROP.PAIN, hurt);
         this.addTrait(PROP.HALO, -hurt);
         this.addTrait(PROP.SPIKE, -hurt);
       }
@@ -515,7 +526,7 @@ class Pearl extends Cell {
       x: world.w2,
       y: world.h2,
       type: TYPE.PEARL,
-      props: [PROP.BOOST]
+      props: [PROP.TAIL]
     });
   }
 }

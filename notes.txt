@@ -1,10 +1,16 @@
-- Different colors for powerups
-- Split if gets too big (a clone)
+PENDING:
+- Spike have a max cap for pain, maybe a whole drop worth
+- Eggs grows alone with time, you grow with them. New eggs make growth faster.
 - Show time, when goal is to reach a time or for score
+- Show size, when goal is to reach a time or for score
+- world size to windows
 - Add sounds
+
+BUGS:
+- level dropdown update
+- projectiles sometimes bounce
+
+IDEAS:
 - Record people playing for documentations
-- Last one standing
-- chomp powerups (hurt and grow)
-- Enemies are different colors
-- splitter gun (split the others — a mixedcolor)
-- 
+- Last one standing goal
+- Chomp powerup: hurt and grow. Dunno, halo + spikes simulate this

@@ -6,11 +6,11 @@ const setRate = (prop, val) => new Object({
 const worlds = [
   {
     prompt: {
-      h2: 'This is Pearl.',
-      p: 'Unlike other animacules, she has autonomy: can decide where to go, like <b>reach drop </b>.',
+      h2: 'This is <b style=color:skyblue>Pearl</b> the animacule.',
+      p: 'She can decide where to go; like to <b>eat droplets</b>.',
     },
     heat: 0,
-    drop: [{
+    drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86
     }],
@@ -21,46 +21,46 @@ const worlds = [
   }, {
     prompt: {
       h2: 'Gotta be big.',
-      p: 'Nothing else to do, but eat and <b>get big</b>?',
+      p: 'Nothing else to do, but <b>eat and grow</b>?',
     },
     heat: 0,
     goal: {
-      size: 2 * SIZE[TYPE.CELL],
+      size: SIZE[TYPE.CELL] + SIZE[TYPE.DROP] * 4,
       color: 'springGreen'
     }
   }, {
     prompt: {
-      h2: "It's a hot one.",
-      p: 'On hot days, pearl needs to <b>eat, in order to survive</b>.',
+      h2: "It's a hot day.",
+      p: 'Pearl needs to eat, in order to <b>survive (for 30 counts)</b>.',
     },
     dropcap: 1,
     droprate: 50,
     heat: 2,
     goal: {
-      time: 1000,
+      time: 30,
       color: 'skyBlue'
     }
   }, {
     prompt: {
-      h2: "I'm not alone.",
-      p: "Others will eat too. Pearl must <b>avoid them in order to survive</b>.",
+      h2: "Competition",
+      p: "Pearl must <b>compete for droplets</b> in order to survive.",
     },
     dropcap: 2,
-    anims: [{
+    cells: [{
       x: 0,
       y: WORLD.h
     }],
     goal: {
-      time: 1000,
+      time: 30,
       color: 'springGreen'
     }
   }, {
     prompt: {
-      h2: "Short stacks",
-      p: "Food is scarce. <b>Survive</b>.",
+      h2: "Scarcity",
+      p: "There's 3 animacules, yet only <b>2 droplets at a time</b>.",
     },
     dropcap: 2,
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
@@ -70,14 +70,14 @@ const worlds = [
       }
     ],
     goal: {
-      time: 1000
+      time: 30
     }
   }, {
     prompt: {
-      h2: "Yikes! Spikes.",
-      p: "Some drop have special abilities. <b>Survive</b>.",
+      h2: "Yikes!",
+      p: "Some droplets give abilities, like <b>spikes that hurt others</b>.",
     },
-    drop: [{
+    drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.SPIKE]
@@ -86,7 +86,7 @@ const worlds = [
     rate: {
       spike: 0.4,
     },
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
@@ -96,24 +96,24 @@ const worlds = [
       }
     ],
     goal: {
-      time: 1000
+      time: 3000
     }
   }, {
     prompt: {
-      h2: "Speed boost.",
-      p: "Some drop have special abilities. <b>Survive</b>.",
+      h2: "Wave your flagella.",
+      p: "This one gives a tail to <b>move faster</b> for a limited time.",
     },
-    drop: [{
+    drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
-      props: [PROP.BOOST]
+      props: [PROP.TAIL]
     }],
     dropcap: 3,
     rate: {
       spike: 0.2,
       boost: 0.4,
     },
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
@@ -123,17 +123,17 @@ const worlds = [
       }
     ],
     goal: {
-      time: 1000
+      time: 3000
     }
   }, {
     prompt: {
       h2: "Shoot'm up.",
-      p: "Some drop have special abilities. <b>Survive</b>.",
+      p: "Hurl projetiles at the nearest animacule by <b>shouting: «PEW PEW!»<b>.",
     },
-    drop: [{
+    drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
-      props: [PROP.SHOT]
+      props: [PROP.HURL]
     }],
     dropcap: 3,
     rate: {
@@ -141,7 +141,7 @@ const worlds = [
       boost: 0.2,
       shot: 0.4,
     },
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
@@ -151,14 +151,14 @@ const worlds = [
       }
     ],
     goal: {
-      time: 1000
+      time: 3000
     }
   }, {
     prompt: {
-      h2: "Split up.",
-      p: "Some drop have special abilities. <b>Survive</b>.",
+      h2: "Reproduction happens.",
+      p: "Grow eggs inside until you <b>get big enought to split</b>.",
     },
-    drop: [{
+    drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.EGG]
@@ -170,7 +170,7 @@ const worlds = [
       shot: 0.2,
       egg: 0.4,
     },
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
@@ -180,14 +180,14 @@ const worlds = [
       }
     ],
     goal: {
-      time: 1000
+      time: 3000
     }
   }, {
     prompt: {
-      h2: "Help out.",
-      p: "Some drop have special abilities. <b>Survive</b>.",
+      h2: "Now nurture",
+      p: "With a halo around you, projectiles and spikes will <b>feed others</b>.",
     },
-    drop: [{
+    drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.HALO]
@@ -200,7 +200,7 @@ const worlds = [
       egg: 0.2,
       halo: 0.4,
     },
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
@@ -210,15 +210,15 @@ const worlds = [
       }
     ],
     goal: {
-      time: 1000
+      time: 3000
     }
   }, {
     prompt: {
       h2: "Go invisible.",
-      p: "There's no time limit here.",
+      p: "With this neat trick <b>others won't see or touch you</b>.",
     },
     dropcap: 4,
-    drop: [{
+    drops: [{
       x: WORLD.w2,
       y: WORLD.h * 0.86,
       props: [PROP.GHOST]
@@ -231,7 +231,7 @@ const worlds = [
       halo: 0.2,
       ghost: 0.4,
     },
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
@@ -246,20 +246,15 @@ const worlds = [
       p: "There's no time limit here.",
     },
     dropcap: 4,
-    drop: [{
-      x: WORLD.w2,
-      y: WORLD.h * 0.86,
-      props: [PROP.GHOST]
-    }],
     rate: {
-      spike: 0.2,
-      boost: 0.2,
-      shot: 0.2,
-      egg: 0.2,
-      halo: 0.2,
-      ghost: 0.4,
+      spike: 0.1,
+      boost: 0.1,
+      shot: 0.1,
+      egg: 0.1,
+      halo: 0.1,
+      ghost: 0.1,
     },
-    anims: [{
+    cells: [{
         x: 0,
         y: WORLD.h
       },
