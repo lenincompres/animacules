@@ -52,7 +52,7 @@ class Dot {
   }
 
   draw(full = true) {
-    if (this.done) return;
+    if (this.done) return delete this;
     this.inDraw(() => {
       if (full) fill(this.color);
       circle(0, 0, this.diam);
@@ -60,6 +60,7 @@ class Dot {
   }
 
   update() {
+    if (this.done) return delete this;
     this.pos.add(this.vel);
     this.vel.add(this.acc);
     this.vel.mult(world.frix);
@@ -75,14 +76,15 @@ class Dot {
     }
   }
 
-  isTouching(target) {
+  isTouching(target, extend = 0) {
     if (target.type === TYPE.BULLET) return false;
-    return this.pos.dist(target.pos) <= this.radius + target.radius;
+    return this.pos.dist(target.pos) <= this.radius + target.radius + extend;
   }
 
-  collide(target) {
-    if (this.done || target === this) return;
-    if (!this.isTouching(target)) return;
+  collide(target, extend) {
+    if (this.done);
+    if (target === this) return;
+    if (!this.isTouching(target, extend)) return;
     let col = p5.Vector.add(target.pos, this.pos).mult(0.5);
     target.vel.add(p5.Vector.sub(target.pos, col).setMag(sqrt(this.size / SIZE[TYPE.DOT])));
     return col;

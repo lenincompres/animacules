@@ -6,6 +6,9 @@ class Drop extends Dot {
     this.props = opt.props ? opt.props : [];
     // can't have both OVUM and SEED
     if (this.has(PROP.OVUM) && this.has(PROP.SEED)) this.props = this.props.filter(prop => prop !== PROP.OVUM && prop !== PROP.SEED);
+    //factor or gain and pain it induces on collide
+    this.gain = 1;
+    this.pain = 0;
   }
 
   has(prop) {
@@ -25,11 +28,10 @@ class Drop extends Dot {
     super.draw(full);
     if (this.has(PROP.OVUM)) this.drawOvum();
     if (this.has(PROP.SEED)) this.drawSeed();
-    if (this.has(PROP.TAIL)) this.drawFlag();
-    if (this.has(PROP.HURT)) this.drawSpikes();
-    if (this.has(PROP.HURL)) this.drawGun();
     if (this.has(PROP.HALO)) this.drawHalo();
     if (this.has(PROP.TAIL)) this.drawFlag();
+    if (this.has(PROP.HURL)) this.drawGun();
+    if (this.has(PROP.HURT)) this.drawThorns();
     if (this.props.includes(PROP.TAIL)) this.drawFlag(1, PI);
   }
 
@@ -51,16 +53,24 @@ class Drop extends Dot {
     });
   }
 
-  drawSpikes(d, c) {
+  drawThorns(thorn, colour) {
     let n = 6;
     let delta = PI / n;
-    if (!d) d = SIZE.LINE * 2;
+    if (!thorn) thorn = SIZE.LINE * 2;
     this.inDraw(() => {
-      if (c) stroke(colorSet(c, colorAlpha(this.color)));
+      let tip = this.radius + thorn;
       while (n) {
         rotate(delta);
-        line(0, this.radius, 0, this.radius + d);
-        line(0, -this.radius, 0, -this.radius - d);
+        if (colour) {
+          stroke(colorSet(colour, colorAlpha(this.color)));
+          strokeWeight(SIZE.LINE * 2);
+          line(0, tip, 0, tip);
+          line(0, -tip, 0, -tip);
+        }
+        stroke(this.color);
+        strokeWeight(SIZE.LINE);
+        line(0, this.radius, 0, this.radius + thorn);
+        line(0, -this.radius, 0, -this.radius - thorn);
         n -= 1;
       }
     });
@@ -81,11 +91,11 @@ class Drop extends Dot {
     this.gun = createVector(cos(ang), sin(ang)).setMag(this.radius * 1.5);
   }
 
-  drawOvum(radius, color) {
+  drawOvum(radius = this.radius) {
     this.inDraw(() => {
-      if (!radius) radius = this.radius;
+      radius = min(radius, sqrt(SIZE.BABY / PI));
       radius *= 0.5;
-      if (!color) stroke(colorSet(this.color, {
+      stroke(colorSet(this.color, {
         l: -25
       }));
       line(-radius, 0, radius, 0);
@@ -106,16 +116,17 @@ class Drop extends Dot {
   }
 
   drawHalo(alpha = 1) {
-    alpha = min(alpha, 1);
     this.inDraw(() => {
       noFill();
       alpha *= colorAlpha(this.color);
-      stroke(colorSet(COLOR[TYPE.DROP], 0.86 * alpha));
+      strokeWeight(SIZE.LINE * 0.68);
+      stroke(colorSet(COLOR[TYPE.DROP], alpha));
       circle(0, 0, this.diam + SIZE.LINE * 4);
     });
   }
 
   update() {
+    if (this.done) return delete this;
     super.update();
     this.size -= SIZE[TYPE.DOT] * world.heat * this.dew / FRAMERATE;
   }

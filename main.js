@@ -6,6 +6,8 @@ let t = 0;
 let currentworld = 0;
 let pointer;
 let pearl = {};
+let cells = [];
+let drops = [];
 let world = WORLD;
 let pause = false;
 let showInfo = false;
@@ -31,25 +33,25 @@ function setup() {
       color: COLOR.DARK
     },
     b: {
-      color: COLOR.GOOD,
+      color: COLOR.YES,
       fontWeight: 'bold'
     },
     i: {
-      color: COLOR.STRONG
+      color: COLOR.BRIGHT
     },
     small: {
       textTransform: 'uppercase',
       fontSize: '0.68em'
     },
     a: {
-      color: COLOR.STRONG,
+      color: COLOR.BRIGHT,
       hover: {
         color: COLOR.PALE
       }
     },
     h: {
       textTransform: 'capitalize',
-      color: COLOR.BASE,
+      color: COLOR.DIM,
       fontFamily: 'title'
     },
     main: {
@@ -62,7 +64,7 @@ function setup() {
       margin: '0 2em 0 0',
       padding: 0,
       background: 'transparent',
-      color: COLOR.BASE,
+      color: COLOR.DIM,
     },
     label: {
       textTransform: 'capitalize',
@@ -107,6 +109,7 @@ function setup() {
         aside: [{
           div: {
             id: 'promptElem',
+            pointerEvents: 'none',
             margin: WORLD.h * 0.25 + 'px 2em',
             fontSize: '1.34em',
             transition: '0.5s',
@@ -129,12 +132,12 @@ function setup() {
         }, {
           id: 'timeline',
           position: 'absolute',
-          background: COLOR.BASE,
+          background: COLOR.PALE,
           width: 0,
           maxWidth: '100%',
           left: 0,
-          opacity: 0.68,
-          bottom: '-' + timelineWeight,
+          top: 0,
+          opacity: 0.86,
           height: timelineWeight,
         }]
       },
@@ -142,7 +145,7 @@ function setup() {
         margin: '0 0 0.5em',
         span: [{
             label: {
-              text: copy.bind(c => c.language)
+              text: copy.bind(c => c.menu.language)
             },
             select: {
               option: Object.entries(COPY.languages).map(([key, value]) => new Object({
@@ -153,14 +156,14 @@ function setup() {
             }
           }, {
             label: {
-              text: copy.bind(c => c.controls)
+              text: copy.bind(c => c.menu.controls)
             },
             select: {
               content: copy.bind(c => {
                 control = CONTROL.DEFAULT;
                 return {
                   option: Object.values(CONTROL).map((value) => new Object({
-                    text: c[value],
+                    text: c.controls[value],
                     value: value,
                   }))
                 }
@@ -171,7 +174,7 @@ function setup() {
           },
           {
             label: {
-              text: copy.bind(c => c.chapter)
+              text: copy.bind(c => c.menu.chapter)
             },
             select: {
               id: 'levelSelect',
@@ -190,7 +193,9 @@ function setup() {
       position: 'fixed',
       bottom: 0,
       padding: '0.5em 1em',
-      p: 'Created by <a href="http://lenino.net">Lenin A. Compres</a> using <a href="https://p5js.org/">P5.js</a>, <a href="https://ml5js.org/">ml5.js</a> and <a href="https://github.com/lenincompres/DOM.js">DOM.js</a>.'
+      p: {
+        content: copy.bind(c => c.credits)
+      }
     }
   });
 
@@ -209,10 +214,8 @@ function setup() {
   loadLevel(0);
 }
 
-function setLanguage(l) {
-  lang = l;
-  if (lang === 'ENG') return copy.value = COPY;
-  copy.value = COPY[lang]
+function setLanguage(lang) {
+  copy.value = lang === 'ENG' ? COPY : COPY[lang]
 }
 
 function loadLevel(level = 0) {
@@ -227,14 +230,15 @@ function loadLevel(level = 0) {
   // reinitiate variables
   world = Object.assign({}, WORLD);
   Object.assign(world, worlds[level]);
+  anims.forEach(anim => delete anim);
   anims = [];
   pearl = new Cell({
     x: world.w2,
     y: world.h2,
     type: TYPE.PEARL,
-    props: [PROP.TAIL]
+    props: [PROP.TAIL],
+    speed: SPEED * 1.68
   });
-  pearl.speed = SPEED * 1.5
   // add level items
   if (world.drops) world.drops.forEach(opt => new Drop(opt));
   if (world.cells) world.cells.forEach((opt, i) => {
@@ -267,7 +271,7 @@ function draw() {
   // black base
   clear();
   // draw video
-  image(ml5.flipImage(video), 0, 0, world.w, world.h);
+  if(control !== CONTROL.MOUSE) image(ml5.flipImage(video), 0, 0, world.w, world.h);
   // dark heat film
   push();
   noStroke();
@@ -311,7 +315,17 @@ function draw() {
   // updating things
   anims = anims.filter(anim => !anim.done);
   anims.forEach(anim => anim.update());
-  anims.filter(a => a.hasAgency).forEach(cell => anims.forEach(a => cell.collide(a)));
+
+  // colliding targetting
+  cells = anims.filter(a => a.hasAgency);
+  drops = anims.filter(a => a.type === TYPE.DROP);
+  cells.forEach(cell => {
+    anims.forEach(a => cell.collide(a));
+    if (cell !== pearl) cell.reach(drops);
+    cell.target(cells);
+  });
+
+  //adding food
   if (world.droprate && !(t % world.droprate)) addFood();
 
   // possible game endings
@@ -342,15 +356,16 @@ function mouseClicked() {
   pearl.fire();
 }
 
-function addFood(props) {
-  if (typeof world.dropcap === 'number' && anims.filter(a => a.type === TYPE.DROP).length >= world.dropcap) return;
-  if (!props && world.rate) {
-    props = [];
-    Object.values(PROP).forEach(prop => {
-      let rate = world.rate[prop];
-      if (rate && random() <= rate) props.push(prop);
-    })
-  }
+function addFood(props = []) {
+  if (typeof world.dropcap !== 'number') return;
+  let cap = world.dropcap * SIZE[TYPE.DROP];
+  let food = drops.length ? drops.reduce((o, a) => o += a.size, 0) : 0;
+  if (food >= cap) return;
+  if (world.rate) Object.values(PROP).forEach(prop => {
+    let rate = world.rate[prop];
+    if (!rate) return;
+    if (random() <= rate) props.push(prop);
+  })
   new Drop({
     props: props
   });
@@ -399,7 +414,7 @@ function gameOver() {
 
 function nextLevel() {
   setPrompt({
-    h4: 'Good job, Pearl!'
+    h4: 'Good job!'
   });
   setTimeout(() => loadLevel(currentworld + 1), 3000);
   pause = true;

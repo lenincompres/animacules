@@ -3,10 +3,11 @@ class Cell extends Drop {
     if (!opt.type) opt.type = TYPE.CELL;
     super(opt);
     this.hasAgency = true;
-    this.speed = SPEED;
+    this.speed = opt.speed ? opt.speed : SPEED;
     this.metab = 1;
     this.dew = this.metab;
     this.trait = {};
+    this.thorn = 0;
     Object.values(PROP).forEach(t => this.trait[t] = 0);
     if (opt.mutation) this.mutate({
       mutation: opt.mutation
@@ -73,7 +74,13 @@ class Cell extends Drop {
   }
 
   draw() {
+    if (this.done) return delete this;
     super.draw(0);
+    this.drawEye();
+    this.drawSeed();
+  }
+
+  drawEye() {
     this.inDraw(() => {
       let diam = this.radius * 0.75;
       let x = map(this.acc.mag(), 0, this.speed, 0, this.radius - diam * 0.5);
@@ -87,7 +94,6 @@ class Cell extends Drop {
       translate(this.eye.x, 0);
       circle(0, 0, diam);
     });
-    this.drawSeed();
   }
 
   drawGun() {
@@ -103,12 +109,11 @@ class Cell extends Drop {
     super.drawGun(ang, COLOR[this.has(PROP.HALO) ? TYPE.DROP : TYPE.SHOT]);
   }
 
-  drawSpikes() {
+  drawThorns() {
     if (!this.getTrait(PROP.HURT)) return;
-    let d = min(this.getTrait(PROP.HURT) / SIZE[TYPE.DOT], SIZE.LINE * 5);
-    let h = this.has(PROP.HALO);
-    super.drawSpikes(d + SIZE.LINE, h ? COLOR[TYPE.DROP] : COLOR[TYPE.SHOT]);
-    super.drawSpikes(d);
+    this.thorn = min(this.getTrait(PROP.HURT) / SIZE[TYPE.DOT], SIZE.LINE * 5);
+    let colour = this.has(PROP.HALO) ? COLOR[TYPE.DROP] : COLOR[TYPE.SHOT]
+    super.drawThorns(this.thorn, colour);
   }
 
   drawFlag() {
@@ -125,16 +130,12 @@ class Cell extends Drop {
   drawOvum() {
     let ovum = this.getTrait(PROP.OVUM);
     if (!ovum) return;
-    let diam = 2 * sqrt(SIZE.BABY / PI);
     let factor = ovum / SIZE.BABY;
-    super.drawOvum(0.5 * diam * factor);
+    super.drawOvum(this.radius * factor);
     this.inDraw(() => {
-      noStroke();
-      circle(0, 0, diam * factor);
-      noFill();
-      stroke(this.color);
-      strokeWeight(SIZE.LINE * 0.34);
-      circle(0, 0, diam);
+      fill(colorSet(this.color, 0.34));
+      strokeWeight(SIZE.LINE * 0.5);
+      circle(0, 0, this.diam * factor);
     });
   }
 
@@ -147,6 +148,7 @@ class Cell extends Drop {
 
   fire() {
     if (!this.getTrait(PROP.HURL)) return;
+    if(!this.gun) this.gun = this.vel;
     let shot = new Shot({
       x: this.pos.x + this.gun.x,
       y: this.pos.y + this.gun.y,
@@ -181,6 +183,7 @@ class Cell extends Drop {
   }
 
   update() {
+    if (this.done) return delete this;
     super.update();
     this.acc.limit(this.speed);
     // reduce traits
@@ -205,37 +208,36 @@ class Cell extends Drop {
       if (this.size <= SIZE.BABY) this.removeTrait(PROP.OVUM);
       else if (this.getTrait(PROP.OVUM) >= SIZE.BABY) this.split();
     }
-    // automaton
-    if (this.type !== TYPE.PEARL) {
-      // go to the closest drop
-      if (anims.filter(a => a.type === TYPE.DROP).length) {
-        let drop = anims.filter(a => a.type === TYPE.DROP).reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o, false);
-        if (!drop) this.acc.mult(0.68);
-        else this.acc = p5.Vector.sub(drop.pos, this.pos);
-      }
-      //firing
-      if (frameCount % (2 * FRAMERATE) < 1) this.fire();
-    }
-    let targets = anims.filter(a => this !== a && a.hasAgency && !a.has(PROP.SOUL));
-    if (targets.length) this.bullseye = targets.reduce((b, a) => !b || this.pos.dist(a.pos) < this.pos.dist(b.pos) ? a : b);
   }
 
-  isTouching(target) {
-    if (target.hasAgency && (target.has(PROP.SOUL) || this.has(PROP.SOUL))) return false;
-    return super.isTouching(target);
+  reach(targets = []) {
+    if (!targets.length) return;
+    let drop = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o, false);
+    if (drop) this.acc = p5.Vector.sub(drop.pos, this.pos);
+    else this.acc.mult(0.68);
+  }
+
+  target(targets = []) {
+    if (!targets.length) return;
+    if (!this.has(PROP.HURL)) return;
+    targets = targets.filter(target => !target.has(PROP.SOUL) && target !== this);
+    this.bullseye = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
+    if (this.type !== TYPE.PEARL && frameCount % (2 * FRAMERATE) < 1) this.fire();
   }
 
   collide(target) {
     if (this.done) return;
     if (target === this) return;
-    if (!this.isTouching(target)) return;
-    let colVect = super.collide(target);
+    let colVect = super.collide(target, this.thorn);
     if (!colVect) return;
     if (target.type === TYPE.DROP) {
       target.props.forEach(t => this.addTrait(t, target.size));
       this.addTrait(PROP.GAIN, target.size);
       target.size = 0;
-    } else if (target.hasAgency) {
+    } 
+    else if (this.has(PROP.SOUL)) return;
+    else if (target.hasAgency && !target.has(PROP.SOUL)) {
+
       if (this.has(PROP.HURT)) {
         let hurt = min(this.getTrait(PROP.HURT), SIZE[TYPE.DROP]);
         this.addTrait(PROP.HURT, -hurt);

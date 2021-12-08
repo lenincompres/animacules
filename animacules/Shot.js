@@ -10,6 +10,7 @@ class Shot extends Dot {
   }
 
   draw() {
+    if(this.done) return delete this;
     super.draw();
     this.inDraw(() => {
       line(-this.r, 0, this.r, 0);
@@ -17,21 +18,23 @@ class Shot extends Dot {
   }
 
   update() {
+    if(this.done) return delete this;
     let lastPos = vectorClone(this.pos);
     super.update();
-    let diff = p5.Vector.sub(this.pos, lastPos);
-    if (diff.mag() < SIZE.LINE) {
-      new Drop({
+    if (this.vel.mag() < SIZE.LINE) {
+      let drop = new Drop({
         x: this.pos.x,
         y: this.pos.y,
         size: this.size
       })
+      if(this.isSeed) drop.props.push(PROP.SEED);
       return this.done = true;
     }
-    let d = 2 * this.diam;
-    let n = floor(diff.mag() / d);
-    diff.setMag(d);
-    let points = new Array(n).fill(1).map((v, i) => p5.Vector.add(lastPos, diff.setMag(d * i)));
+    let diff = vectorClone(this.vel);
+    let dist = 2 * this.diam;
+    let inc = floor(diff.mag() / dist);
+    diff.setMag(dist);
+    let points = new Array(inc).fill(1).map((v, i) => p5.Vector.add(lastPos, diff.setMag(dist * i)));
     points.push(this.pos);
     anims.filter(anim => anim.hasAgency && !anim.done && !anim.has(PROP.SOUL)).forEach(cell => {
       if (this.done) return;

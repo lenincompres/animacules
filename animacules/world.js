@@ -1,33 +1,50 @@
+const FRAMERATE = 26;
+
 const CONTROL = {
   MOUSE: 'mouse',
   DEFAULT: 'default',
   NOSE: 'nose',
 }
 
+const LINK = {
+  p5: '<a href="https://p5js.org/">p5.js</a>',
+  ml5: '<a href="https://ml5js.org/">ml5.js</a>',
+  lenino: '<a href="http://lenino.net">Lenin A. Compres</a>',
+  DOM: '<a href="https://github.com/lenincompres/DOM.js">DOM.js</a>'
+}
+
 const COPY = {
   title: 'animacules',
-  controls: 'controls',
-  chapter: 'chapter',
-  language: 'language',
-  nose: 'nose',
-  mouse: 'mouse',
-  default: 'default',
+  credits: `Created by ${LINK.lenino} using ${LINK.p5}, ${LINK.ml5} and ${LINK.DOM}.`,
+  menu: {
+    language: 'language',
+    controls: 'controls',
+    chapter: 'chapter',
+  },
+  controls: {
+    nose: 'nose',
+    mouse: 'mouse',
+    default: 'default',
+  },
   languages: {
     ENG: 'English',
     ESP: 'Español',
   },
   ESP: {
     title: 'animalucos',
-    language: 'lenguaje',
-    controls: 'control',
-    chapter: 'capítulo',
-    nose: 'nariz',
-    mouse: 'mouse',
-    default: 'normal',
+    credits: `Creado por ${LINK.lenino} usando ${LINK.p5}, ${LINK.ml5} y ${LINK.DOM}.`,
+    menu: {
+      language: 'lenguaje',
+      controls: 'control',
+      chapter: 'capítulo',
+    },
+    controls: {
+      nose: 'nariz',
+      mouse: 'mouse',
+      default: 'normal',
+    }
   }
 }
-
-const FRAMERATE = 26;
 
 const WORLD = {
   w: 800,
@@ -49,18 +66,19 @@ const TYPE = {
 }
 
 const COLOR = {
+  BRIGHT: 'royalBlue',
   LIGHT: 'aliceBlue',
-  STRONG: 'royalBlue',
   PALE: 'lightskyblue',
-  BASE: 'steelblue',
-  GOOD: 'lawngreen',
-  BAD: 'red',
+  DIM: 'steelblue',
   DARK: '#060501',
+  YES: 'lawngreen',
+  HOT: 'gold',
+  NOT: 'red',
 };
 COLOR[TYPE.DOT] = COLOR.LIGHT;
-COLOR[TYPE.SHOT] = COLOR.BAD;
-COLOR[TYPE.DROP] = COLOR.GOOD;
-COLOR[TYPE.CELL] = COLOR.STRONG;
+COLOR[TYPE.DROP] = COLOR.YES;
+COLOR[TYPE.SHOT] = COLOR.NOT;
+COLOR[TYPE.CELL] = COLOR.BRIGHT;
 COLOR[TYPE.PEARL] = COLOR.PALE;
 
 const SIZE = {
