@@ -1,10 +1,3 @@
-const FOLLOW = {
-  DEFAULT: 'default',
-  NOSE: 'nose',
-  MOUSE: 'mouse',
-  //DIFF: 'diff'
-}
-
 // Video
 let video;
 let poses = [];
@@ -25,28 +18,57 @@ function preload() {
   classifier = ml5.soundClassifier(soundModel + 'model.json');
 }
 
+// binders
+let lang = 'ENG';
+let control = CONTROL.DEFAULT;
+let timelineWeight = 2 * SIZE.LINE + 'pt';
+const copy = new Binder(COPY);
+
 function setup() {
   DOM.style({
+    body: {
+      background: COLOR.LIGHT,
+      color: COLOR.DARK
+    },
     b: {
-      color: COLOR[TYPE.DROP],
+      color: COLOR.GOOD,
       fontWeight: 'bold'
     },
     i: {
-      color: COLOR[TYPE.PEARL]
+      color: COLOR.STRONG
     },
     small: {
       textTransform: 'uppercase',
       fontSize: '0.68em'
     },
+    a: {
+      color: COLOR.STRONG,
+      hover: {
+        color: COLOR.PALE
+      }
+    },
     h: {
+      textTransform: 'capitalize',
+      color: COLOR.BASE,
       fontFamily: 'title'
+    },
+    main: {
+      _h: {
+        color: COLOR.PALE
+      }
     },
     select: {
       border: 'none',
       margin: '0 2em 0 0',
       padding: 0,
       background: 'transparent',
-      color: '#666',
+      color: COLOR.BASE,
+    },
+    label: {
+      textTransform: 'capitalize',
+      after: {
+        content: '": "'
+      }
     }
   });
 
@@ -64,12 +86,10 @@ function setup() {
     }],
     fontFamily: 'main',
     textAlign: 'center',
-    backgroundColor: '#def',
     header: {
-      color: 'black',
       h1: {
         fontSize: '3em',
-        text: 'Animacules'
+        text: copy.bind(c => c.title)
       },
       p: {
         fontSize: '1.25em',
@@ -81,20 +101,18 @@ function setup() {
         position: 'relative',
         width: world.w + 'px',
         height: world.h + 'px',
-        margin: '0 auto',
+        margin: '0.17em auto ' + timelineWeight,
+        backgroundColor: 'black',
         canvas: createCanvas(WORLD.w, WORLD.h),
         aside: [{
-            css:{
-              _h2:{
-                color: COLOR[TYPE.PEARL]
-              }
-            },
           div: {
             id: 'promptElem',
             margin: WORLD.h * 0.25 + 'px 2em',
             fontSize: '1.34em',
             transition: '0.5s',
-            opacity: 0,
+            opacity: 1,
+            color: COLOR.LIGHT,
+            text: 'This game requires camera and mic access to follow your head movement and commands as a controller.'
           },
           width: '100%',
           position: 'absolute',
@@ -103,44 +121,68 @@ function setup() {
           color: 'white'
         }, {
           id: 'infoElem',
+          position: 'absolute',
           color: 'gray',
           textAlign: 'left',
           top: 0,
           margin: '1em',
-          position: 'absolute',
         }, {
           id: 'timeline',
           position: 'absolute',
-          background: COLOR[TYPE.DROP],
-          bottom: 0,
-          left: 0,
+          background: COLOR.BASE,
           width: 0,
-          height: 2 * SIZE.LINE + 'pt',
+          maxWidth: '100%',
+          left: 0,
+          opacity: 0.68,
+          bottom: '-' + timelineWeight,
+          height: timelineWeight,
         }]
       },
       menu: {
         margin: '0 0 0.5em',
         span: [{
-          label: 'Control:',
-          select: {
-            id: 'follow',
-            option: Object.values(FOLLOW).map(f => new Object({
-              text: f,
-              value: f,
-            }))
+            label: {
+              text: copy.bind(c => c.language)
+            },
+            select: {
+              option: Object.entries(COPY.languages).map(([key, value]) => new Object({
+                text: value,
+                value: key,
+              })),
+              onchange: e => setLanguage(e.target.value)
+            }
+          }, {
+            label: {
+              text: copy.bind(c => c.controls)
+            },
+            select: {
+              content: copy.bind(c => {
+                control = CONTROL.DEFAULT;
+                return {
+                  option: Object.values(CONTROL).map((value) => new Object({
+                    text: c[value],
+                    value: value,
+                  }))
+                }
+              }),
+              onchange: e => control = e.target.value,
+              onready: elt => control = elt.value
+            }
+          },
+          {
+            label: {
+              text: copy.bind(c => c.chapter)
+            },
+            select: {
+              id: 'levelSelect',
+              onchange: e => loadLevel(e.target.value),
+              option: worlds.map((w, i) => new Object({
+                text: i + 1,
+                value: i
+              }))
+            }
           }
-        }, {
-          id: 'levelSelect',
-          label: 'Level:',
-          select: {
-            id: 'levelSelect',
-            onchange: e => loadLevel(e.target.value),
-            option: worlds.map((w, i) => new Object({
-              text: i + 1,
-              value: i
-            }))
-          }
-        }]
+        ]
       }
     },
     footer: {
@@ -148,9 +190,7 @@ function setup() {
       position: 'fixed',
       bottom: 0,
       padding: '0.5em 1em',
-      color: 'white',
-      textShadow: '1px 1px 1px black',
-      p: 'Created by Lenin A. Compres.'
+      p: 'Created by <a href="http://lenino.net">Lenin A. Compres</a> using <a href="https://p5js.org/">P5.js</a>, <a href="https://ml5js.org/">ml5.js</a> and <a href="https://github.com/lenincompres/DOM.js">DOM.js</a>.'
     }
   });
 
@@ -169,9 +209,15 @@ function setup() {
   loadLevel(0);
 }
 
+function setLanguage(l) {
+  lang = l;
+  if (lang === 'ENG') return copy.value = COPY;
+  copy.value = COPY[lang]
+}
+
 function loadLevel(level = 0) {
   level = parseInt(level);
-
+  if (level < 0) level = 0;
   if (!worlds[level]) return setPrompt({
     h2: "All done!",
     p: "That was the last level."
@@ -180,12 +226,21 @@ function loadLevel(level = 0) {
   pause = true;
   // reinitiate variables
   world = Object.assign({}, WORLD);
-  anims = [];
-  pearl = new Pearl({});
   Object.assign(world, worlds[level]);
+  anims = [];
+  pearl = new Cell({
+    x: world.w2,
+    y: world.h2,
+    type: TYPE.PEARL,
+    props: [PROP.TAIL]
+  });
+  pearl.speed = SPEED * 1.5
   // add level items
   if (world.drops) world.drops.forEach(opt => new Drop(opt));
-  if (world.cells) world.cells.forEach(opt => new Cell(opt));
+  if (world.cells) world.cells.forEach((opt, i) => {
+    opt.mutation = i * 20;
+    new Cell(opt);
+  });
   setPrompt({
     h2: world.title,
     p: world.tagline
@@ -196,7 +251,7 @@ function loadLevel(level = 0) {
   t = 0;
   pause = false;
 
-  levelTitle.set(`Chapter ${level+1}: ${world.title}`);
+  levelTitle.set(`Chapter ${level+1} — ${world.title}`);
   timeline.set(0, 'width');
 }
 
@@ -210,11 +265,12 @@ function soundMade(error, results) {
 function draw() {
   t += 1;
   // black base
-  background(0);
+  clear();
   // draw video
   image(ml5.flipImage(video), 0, 0, world.w, world.h);
   // dark heat film
   push();
+  noStroke();
   fill(colorSet(0, {
     r: world.heat * 10,
     g: world.heat * 5,
@@ -224,12 +280,12 @@ function draw() {
   pop();
 
   // find nose/mouse
-  if (follow.value === FOLLOW.MOUSE) {
+  if (control === CONTROL.MOUSE) {
     pointer = createVector(mouseX, mouseY);
   } else if (poses[0] && poses[0].pose && poses[0].pose.nose) {
     pointer = poses[0].pose.nose;
     pointer = createVector(WORLD.w - pointer.x, pointer.y);
-    if (follow.value === FOLLOW.DEFAULT) pointer = createVector(pearl.pos.x + pointer.x - world.w2, pearl.pos.y + pointer.y - world.h2);
+    if (control === CONTROL.DEFAULT) pointer = createVector(pearl.pos.x + pointer.x - world.w2, pearl.pos.y + pointer.y - world.h2);
   }
 
   // pearl updates
@@ -242,8 +298,8 @@ function draw() {
     let colour = colorSet(pearl.color, 0.68)
     stroke(colour);
     translate(pearl.pos.x, pearl.pos.y);
-    if (follow.value === FOLLOW.NOSE) circle(intent.x, intent.y, pearl.r * 0.68);
-    else if (follow.value === FOLLOW.DEFAULT) arrow(intent, colour);
+    if (control === CONTROL.NOSE) circle(intent.x, intent.y, pearl.r * 0.68);
+    else if (control === CONTROL.DEFAULT) arrow(intent, colour);
     pop()
   }
 
@@ -282,7 +338,7 @@ function draw() {
 }
 
 function mouseClicked() {
-  if (follow.value !== FOLLOW.MOUSE) return;
+  if (control !== CONTROL.MOUSE) return;
   pearl.fire();
 }
 
@@ -317,10 +373,13 @@ function keyPressed() {
     props: [PROP.HURL]
   });
   if (key === 'd') return new Drop({
-    props: [PROP.SPIKE]
+    props: [PROP.HURT]
   });
   if (key === 'f') return new Drop({
-    props: [PROP.HURL, PROP.SPIKE, PROP.TAIL]
+    props: [PROP.OVUM]
+  });
+  if (key === 'g') return new Drop({
+    props: [PROP.SEED]
   });
   if (key === 'i') {
     infoElem.set({}, true);

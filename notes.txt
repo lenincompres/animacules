@@ -1,6 +1,4 @@
 PENDING:
-- Show time, when goal is to reach a time or for score
-- Show size, when goal is to reach a time or for score
 - world size to windows
 - Add sounds
 
