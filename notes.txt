@@ -1,9 +1,10 @@
 PENDING:
+- add voice recognition
 - world size to windows
 - Add sounds
 
 BUGS:
-- level dropdown update
+- others are not seeding pearl upon bumping
 
 IDEAS:
 - Record people playing for documentations

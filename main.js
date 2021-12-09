@@ -3,7 +3,7 @@ let video;
 let poses = [];
 
 let t = 0;
-let currentworld = 0;
+let currentLevel = 0;
 let pointer;
 let pearl = {};
 let cells = [];
@@ -11,6 +11,7 @@ let drops = [];
 let world = WORLD;
 let pause = false;
 let showInfo = false;
+const levelTime = new Binder(0);
 
 // Teachable Machine model URL:
 let classifier;
@@ -95,15 +96,17 @@ function setup() {
       },
       p: {
         fontSize: '1.25em',
+        textTransform: 'capitalize',
         id: 'levelTitle'
       }
     },
     section: {
+      width: world.w + 'px',
+      margin: '0.5em auto ',
       main: {
         position: 'relative',
         width: world.w + 'px',
         height: world.h + 'px',
-        margin: '0.17em auto ' + timelineWeight,
         backgroundColor: 'black',
         canvas: createCanvas(WORLD.w, WORLD.h),
         aside: [{
@@ -130,62 +133,67 @@ function setup() {
           top: 0,
           margin: '1em',
         }, {
-          id: 'timeline',
           position: 'absolute',
-          background: COLOR.PALE,
-          width: 0,
-          maxWidth: '100%',
-          left: 0,
+          background: COLOR.HOT,
+          width: '2em',
+          height: '2em',
+          borderRadius: '100%',
+          left: levelTime.bind(val => val + '%'),
+          display: levelTime.bind(val => val ? 'block' : 'none'),
           top: 0,
-          opacity: 0.86,
-          height: timelineWeight,
+          margin: '-1em',
+          boxShadow: `0 0 2em ${COLOR.HOT}`
         }]
       },
       menu: {
         margin: '0 0 0.5em',
-        span: [{
-            label: {
-              text: copy.bind(c => c.menu.language)
+        ul: {
+          display: 'flex',
+          placeContent: 'center',
+          li: [{
+              label: {
+                text: copy.bind(c => c.menu.language)
+              },
+              select: {
+                option: Object.entries(COPY.languages).map(([key, value]) => new Object({
+                  text: value,
+                  value: key,
+                })),
+                onchange: e => setLanguage(e.target.value)
+              }
+            }, {
+              label: {
+                text: copy.bind(c => c.menu.controls)
+              },
+              select: {
+                content: copy.bind(c => {
+                  control = CONTROL.DEFAULT;
+                  return {
+                    option: Object.values(CONTROL).map((value) => new Object({
+                      text: c.controls[value],
+                      value: value,
+                    }))
+                  }
+                }),
+                onchange: e => control = e.target.value,
+                onready: elt => control = elt.value
+              }
             },
-            select: {
-              option: Object.entries(COPY.languages).map(([key, value]) => new Object({
-                text: value,
-                value: key,
-              })),
-              onchange: e => setLanguage(e.target.value)
+            {
+              label: {
+                text: copy.bind(c => c.menu.chapter)
+              },
+              select: {
+                id: 'levelSelect',
+                onchange: e => loadLevel(e.target.value),
+                option: worlds.map((w, i) => new Object({
+                  text: i + 1,
+                  value: i
+                }))
+              }
             }
-          }, {
-            label: {
-              text: copy.bind(c => c.menu.controls)
-            },
-            select: {
-              content: copy.bind(c => {
-                control = CONTROL.DEFAULT;
-                return {
-                  option: Object.values(CONTROL).map((value) => new Object({
-                    text: c.controls[value],
-                    value: value,
-                  }))
-                }
-              }),
-              onchange: e => control = e.target.value,
-              onready: elt => control = elt.value
-            }
-          },
-          {
-            label: {
-              text: copy.bind(c => c.menu.chapter)
-            },
-            select: {
-              id: 'levelSelect',
-              onchange: e => loadLevel(e.target.value),
-              option: worlds.map((w, i) => new Object({
-                text: i + 1,
-                value: i
-              }))
-            }
-          }
-        ]
+          ]
+        }
       }
     },
     footer: {
@@ -214,8 +222,10 @@ function setup() {
   loadLevel(0);
 }
 
-function setLanguage(lang) {
-  copy.value = lang === 'ENG' ? COPY : COPY[lang]
+function setLanguage(l) {
+  lang = l;
+  copy.value = lang === 'ENG' ? COPY : COPY[lang];
+  loadLevel(currentLevel);
 }
 
 function loadLevel(level = 0) {
@@ -245,18 +255,19 @@ function loadLevel(level = 0) {
     opt.mutation = i * 20;
     new Cell(opt);
   });
+  let title = world[lang] ? world[lang].title : world.title;
+  let tagline = world[lang] ? world[lang].tagline : world.tagline;
   setPrompt({
-    h2: world.title,
-    p: world.tagline
+    h2: title,
+    p: tagline
   });
+  levelTitle.set(`${copy.value.menu.chapter} ${level+1} — ${title}`);
   // start level
-  currentworld = level;
+  currentLevel = level;
   levelSelect.value = level;
   t = 0;
+  levelTime.value = 0;
   pause = false;
-
-  levelTitle.set(`Chapter ${level+1} — ${world.title}`);
-  timeline.set(0, 'width');
 }
 
 // The model recognizing a sound will trigger this event
@@ -271,7 +282,7 @@ function draw() {
   // black base
   clear();
   // draw video
-  if(control !== CONTROL.MOUSE) image(ml5.flipImage(video), 0, 0, world.w, world.h);
+  if (control !== CONTROL.MOUSE) image(ml5.flipImage(video), 0, 0, world.w, world.h);
   // dark heat film
   push();
   noStroke();
@@ -334,7 +345,7 @@ function draw() {
     if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
     if (world.goal.time) {
       if (t > world.goal.time * FRAMERATE) nextLevel();
-      timeline.set((t / FRAMERATE) * 100 / world.goal.time + '%', 'width');
+      levelTime.value = 100 * (t / FRAMERATE) / world.goal.time;
     }
   }
 
@@ -342,7 +353,7 @@ function draw() {
   if (showInfo) {
     infoElem.set({
       p: [
-        'level: ' + currentworld,
+        'level: ' + currentLevel,
         'time: ' + t,
         'size: ' + round(pearl.size),
         ...Object.entries(pearl.trait).map(([key, value]) => key + ': ' + value)
@@ -379,8 +390,8 @@ function modelReady() {
 /*  */
 
 function keyPressed() {
-  if (keyCode === UP_ARROW) return loadLevel(currentworld + 1);
-  if (keyCode === DOWN_ARROW) return loadLevel(currentworld - 1);
+  if (keyCode === UP_ARROW) return loadLevel(currentLevel + 1);
+  if (keyCode === DOWN_ARROW) return loadLevel(currentLevel - 1);
   if (key === 'a') return new Drop({
     props: [PROP.TAIL]
   });
@@ -414,15 +425,15 @@ function gameOver() {
   setPrompt({
     h2: 'Game Over',
   });
-  setTimeout(() => loadLevel(currentworld), 3000);
+  setTimeout(() => loadLevel(currentLevel), 3000);
   pause = true;
 }
 
 function nextLevel() {
   setPrompt({
-    h4: 'Good job!'
+    h4: copy.value.goodJob
   });
-  setTimeout(() => loadLevel(currentworld + 1), 3000);
+  setTimeout(() => loadLevel(currentLevel + 1), 3000);
   pause = true;
 }
 

@@ -185,7 +185,7 @@ class Cell extends Drop {
     }
     let ovum = this.getTrait(PROP.OVUM);
     if (ovum) {
-      this.size += dim;
+      this.size += dim * 0.5;
       this.addTrait(PROP.OVUM, dim);
       if (this.size <= SIZE.BABY) this.removeTrait(PROP.OVUM);
       else if (ovum >= SIZE.BABY) this.split();

@@ -1,8 +1,8 @@
 const FRAMERATE = 26;
 
 const CONTROL = {
-  MOUSE: 'mouse',
   DEFAULT: 'default',
+  MOUSE: 'mouse',
   NOSE: 'nose',
 }
 
@@ -16,6 +16,7 @@ const LINK = {
 const COPY = {
   title: 'animacules',
   credits: `Created by ${LINK.lenino} using ${LINK.p5}, ${LINK.ml5} and ${LINK.DOM}.`,
+  goodJob: 'Good job!',
   menu: {
     language: 'language',
     controls: 'controls',
@@ -33,6 +34,7 @@ const COPY = {
   ESP: {
     title: 'animalucos',
     credits: `Creado por ${LINK.lenino} usando ${LINK.p5}, ${LINK.ml5} y ${LINK.DOM}.`,
+    goodJob: '¡Buen trabajo!',
     menu: {
       language: 'lenguaje',
       controls: 'control',
