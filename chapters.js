@@ -132,7 +132,7 @@ const worlds = [{
   title: "Spew unpleasantries.",
   tagline: ["Say: <b>«Pew pew!»<b>"],
   ESP: {
-    title: "Se escupen la cosas.",
+    title: "Se escupen las cosas.",
     tagline: "Diciendo: <b>«¡Po, po!»</b>.",
   },
   drops: [{
@@ -161,7 +161,7 @@ const worlds = [{
   tagline: "Grow steadily until <b>splitting into two</b>.",
   ESP: {
     title: "Acontece la reproducción.",
-    tagline: "Crecerán más hasta <b>dividirse en dos</b>.",
+    tagline: "Podrán crecer más, hasta <b>dividirse en dos</b>.",
   },
   drops: [{
     props: [PROP.OVUM]
