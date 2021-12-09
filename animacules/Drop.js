@@ -3,9 +3,10 @@ class Drop extends Dot {
     if (!opt.type) opt.type = TYPE.DROP;
     super(opt);
     this.dew = 0;
-    this.pain = 0;
-    this.gain = 1;
+    this.pain = 0; // from 0 to 1
+    this.gain = 1; // from -1 (harmful) to 1
     this.props = opt.props ? opt.props : [];
+    this.speed = SHOTSPEED * SIZE[TYPE.DROP] / SIZE[TYPE.CELL];
 
     // props
     this.addProp(PROP.FOOD);
@@ -16,6 +17,22 @@ class Drop extends Dot {
       this.removeProp(PROP.OVUM);
       this.removeProp(PROP.SEED);
     }
+  }
+
+  set pain(val) {
+    this._pain = constrain(val, 0, 1);
+  }
+
+  get pain() {
+    return this._pain;
+  }
+
+  set gain(val) {
+    this._gain = constrain(val, -1, 1);
+  }
+
+  get gain() {
+    return this._gain;
   }
 
   hasProp(prop) {
@@ -33,9 +50,11 @@ class Drop extends Dot {
   }
 
   get color() {
+    let r = this.pain - min(0, this.gain);
+    let g = max(0, this.gain) - this.pain;
     return colorSet(this._color, {
-      r: this.pain * 255,
-      g: this.gain * 255,
+      r: r * 255,
+      g: g * 255,
     });
   }
 
@@ -43,12 +62,12 @@ class Drop extends Dot {
     super.color = colour;
   }
 
-  getFill(){
+  getFill() {
     if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.17);
     return super.getFill();
   }
 
-  getStroke(){
+  getStroke() {
     if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.34);
     return super.getStroke();
   }
@@ -82,26 +101,16 @@ class Drop extends Dot {
   }
 
   drawHurt(thorn, colour) {
-    let isDrop = false;
     if (!thorn) {
-      isDrop = true;
-      thorn = SIZE.LINE;
-      if (!this.hasProp(PROP.HALO)) {
-        this.gain = 1 + sin(2 * (t - this.t) / FRAMERATE);
-        this.pain = 1 - this.gain;
-      }
-      colour = colorAdd(color(0), {
-        r: this.pain * 255,
-        g: this.gain * 255,
-        a: colorAlpha(this.color)
-      });
+      thorn = LINEWEIGHT;
+      colour = this.color;
     }
     this.inDraw(() => {
       stroke(colour);
-      strokeWeight(min(thorn + 1, SIZE.LINE * 3));
+      strokeWeight(min(thorn + 1, LINEWEIGHT * 3));
       this.drawAround(this.radius + thorn);
       stroke(this.color);
-      strokeWeight(SIZE.LINE);
+      strokeWeight(LINEWEIGHT);
       this.drawAround(this.radius, thorn);
     });
   }
@@ -161,9 +170,9 @@ class Drop extends Dot {
     this.inDraw(() => {
       noFill();
       alpha *= colorAlpha(this.color);
-      strokeWeight(SIZE.LINE * 0.68);
+      strokeWeight(LINEWEIGHT * 0.68);
       stroke(colorSet(COLOR[TYPE.DROP], alpha));
-      circle(0, 0, this.diam + SIZE.LINE * 4);
+      circle(0, 0, this.diam + LINEWEIGHT * 4);
     });
   }
 
@@ -171,5 +180,24 @@ class Drop extends Dot {
     if (this.done) return delete this;
     super.update();
     this.size -= SIZE[TYPE.DOT] * world.heat * this.dew / FRAMERATE;
+
+    //this is only for non pearl
+    if (this === pearl) return;
+    if (!(this.age % (2 * FRAMERATE))) this.fire();
+
+    //this is only for food
+    if (this.hasAgency) return;
+    if (this.hasProp(PROP.HALO)) {
+      this.pain = 0;
+      this.gain = 1;
+    }
+    this.pain = this.vel.mag() / LINEWEIGHT;
+    if (this.hasProp(PROP.HURT)) this.gain = 10 * sin(this.age / FRAMERATE);
+  }
+
+  fire() {
+    if (this.hasAgency) return;
+    if (!this.hasProp(PROP.HURL)) return;
+    this.vel.add(this.gun.setMag(this.speed));
   }
 }

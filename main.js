@@ -2,16 +2,16 @@
 let video;
 let poses = [];
 
-let t = 0;
+let levelTime = 1;
 let currentLevel = 0;
 let pointer;
-let pearl = {};
+let pearl;
 let cells = [];
 let drops = [];
 let world = WORLD;
 let pause = false;
 let showInfo = false;
-const levelTime = new Binder(0);
+const dayTime = new Binder(0);
 
 // Teachable Machine model URL:
 let classifier;
@@ -24,7 +24,7 @@ function preload() {
 // binders
 let lang = 'ENG';
 let control = CONTROL.DEFAULT;
-let timelineWeight = 2 * SIZE.LINE + 'pt';
+let timelineWeight = 2 * LINEWEIGHT + 'pt';
 const copy = new Binder(COPY);
 
 function setup() {
@@ -138,8 +138,8 @@ function setup() {
           width: '2em',
           height: '2em',
           borderRadius: '100%',
-          left: levelTime.bind(val => val + '%'),
-          display: levelTime.bind(val => val ? 'block' : 'none'),
+          left: dayTime.bind(val => val + '%'),
+          display: dayTime.bind(val => val ? 'block' : 'none'),
           top: 0,
           margin: '-1em',
           boxShadow: `0 0 2em ${COLOR.HOT}`
@@ -265,8 +265,8 @@ function loadLevel(level = 0) {
   // start level
   currentLevel = level;
   levelSelect.value = level;
-  t = 0;
-  levelTime.value = 0;
+  levelTime = 1;
+  dayTime.value = 0;
   pause = false;
 }
 
@@ -278,7 +278,7 @@ function soundMade(error, results) {
 }
 
 function draw() {
-  t += 1;
+  levelTime += 1;
   // black base
   clear();
   // draw video
@@ -337,15 +337,15 @@ function draw() {
   });
 
   //adding food
-  if (world.droprate && !(t % world.droprate)) addFood();
+  if (world.droprate && !(levelTime % world.droprate)) addFood();
 
   // possible game endings
   if (pearl.done) gameOver();
   else if (world.goal) {
     if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
-    if (world.goal.time) {
-      if (t > world.goal.time * FRAMERATE) nextLevel();
-      levelTime.value = 100 * (t / FRAMERATE) / world.goal.time;
+    if (world.goal.levelTime) {
+      if (levelTime > world.goal.levelTime * FRAMERATE) nextLevel();
+      dayTime.value = 100 * (levelTime / FRAMERATE) / world.goal.levelTime;
     }
   }
 
@@ -354,7 +354,7 @@ function draw() {
     infoElem.set({
       p: [
         'level: ' + currentLevel,
-        'time: ' + t,
+        'levelTime: ' + levelTime,
         'size: ' + round(pearl.size),
         ...Object.entries(pearl.trait).map(([key, value]) => key + ': ' + value)
       ]

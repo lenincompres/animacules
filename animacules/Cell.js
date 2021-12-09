@@ -8,7 +8,7 @@ class Cell extends Drop {
     this.dew = this.metab;
     this.gain = 0;
     this.trait = {};
-    Object.values(PROP).forEach(t => this.trait[t] = 0);
+    Object.values(PROP).forEach(time => this.trait[time] = 0);
     if (opt.mutation) this.mutate({
       mutation: opt.mutation,
       mom: opt.mom,
@@ -81,8 +81,8 @@ class Cell extends Drop {
     return diff;
   }
 
-  removeTrait(t) {
-    return this.trait[t] = 0;
+  removeTrait(time) {
+    return this.trait[time] = 0;
   }
 
   draw() {
@@ -128,7 +128,7 @@ class Cell extends Drop {
 
   drawHurt() {
     if (!this.getTrait(PROP.HURT)) return;
-    this.thorn = min(this.getTrait(PROP.HURT) / SIZE[TYPE.DOT], SIZE.LINE * 5);
+    this.thorn = min(this.getTrait(PROP.HURT) / SIZE[TYPE.DOT], LINEWEIGHT * 5);
     let colour = this.hasTrait(PROP.HALO) ? COLOR[TYPE.DROP] : COLOR[TYPE.SHOT]
     super.drawHurt(this.thorn, colour);
   }
@@ -150,8 +150,7 @@ class Cell extends Drop {
     let factor = ovum / SIZE.BABY;
     super.drawOvum(this.radius * factor);
     this.inDraw(() => {
-      fill(colorSet(this.color, 0.34));
-      strokeWeight(SIZE.LINE * 0.5);
+      strokeWeight(LINEWEIGHT * 0.5);
       circle(0, 0, this.diam * factor);
     });
   }
@@ -211,7 +210,6 @@ class Cell extends Drop {
     targets = targets.filter(target => !target.hasTrait(PROP.HIDE) && target !== this);
     if (!targets.length) return;
     this.bullseye = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
-    if (this.type !== TYPE.PEARL && frameCount % (2 * FRAMERATE) < 1) this.fire();
   }
 
   split() {
@@ -254,7 +252,7 @@ class Cell extends Drop {
     }
     if (!target.hasAgency) {
       this.vel.add(target.vel.mult(maxBite/this.size));
-      if (eat >= target.size) target.props.forEach(t => this.addTrait(t, target.size));
+      if (eat >= target.size) target.props.forEach(time => this.addTrait(time, target.size));
       target.size -= eat;
     } else {
       if (this.hasTrait(PROP.HURT)) {
@@ -275,7 +273,6 @@ class Cell extends Drop {
 
   fire() {
     if (!this.hasTrait(PROP.HURL)) return;
-    if (!this.gun) this.gun = this.vel;
     let shot = new Shot({
       x: this.pos.x + this.gun.x,
       y: this.pos.y + this.gun.y,

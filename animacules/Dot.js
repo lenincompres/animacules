@@ -15,10 +15,14 @@ class Dot {
     this.type = type;
     this.size = size ? size : SIZE[this.type];
     this.color = color ? color : COLOR[this.type];
-    this.hitPoints = [];
+    this.positions = [];
     this.collitions = [];
-    this.t = t; // birthTime
+    this.time = levelTime; // birthTime
     dots.push(this);
+  }
+
+  get age(){
+    return levelTime - this.time;
   }
 
   set color(colour) {
@@ -50,7 +54,7 @@ class Dot {
   }
 
   getLine() {
-    return SIZE.LINE;
+    return LINEWEIGHT;
   }
 
   inDraw(drawing = () => null) {
@@ -74,6 +78,7 @@ class Dot {
     this.pos.add(this.vel);
     this.vel.add(this.acc);
     this.vel.mult(world.frix);
+    if(this.vel.mag() < 0.1) this.vel.setMag(0);
     this.collitions = [];
     if (this.pos.x < this.radius || this.pos.x > world.w - this.radius) {
       this.vel.x *= -1;
@@ -86,44 +91,49 @@ class Dot {
       this.pos.y = constrain(this.pos.y, this.radius, world.h - this.radius);
     }
     if (this.size < 1) this.done = true;
-    this.hitPoints = [this.pos];
-    let dist = this.diam;
-    if (p5.Vector.sub(this.pos, this.lastPos).mag() > dist) return;
+    // handle fast things like bullets for multiple hit points
+    this.positions = [this.pos];
+    if (p5.Vector.sub(this.pos, this.lastPos).mag() > MAXLENGTH) return;
     let diff = vectorClone(this.vel);
-    let inc = floor(diff.mag() / dist);
-    diff.setMag(dist);
-    this.hitPoints = new Array(inc).fill(1).map((v, i) => p5.Vector.add(this.lastPos, diff.setMag(dist * i)));
+    let inc = floor(diff.mag() / MAXLENGTH);
+    diff.setMag(MAXLENGTH);
+    this.positions = new Array(inc).fill(1).map((v, i) => p5.Vector.add(this.lastPos, diff.setMag(MAXLENGTH * i)));
   }
 
   isTouching(target, extend = 0) {
+    if (this.done) return;
     let hit = false;
-    if (this.hitPoints.length < 2) {
-      hit = this.pos.dist(target.pos) <= this.radius + target.radius + extend;
-    } else {
-      this.hitPoints.forEach(p => {
-        if (!hit) hit = target.pos.dist(p) < target.radius + extend;
-      });
-    }
-    if(!hit) return;
-    let median = p5.Vector.add(target.pos, this.pos).mult(0.5);
-    return p5.Vector.sub(target.pos, median).normalize();
+    let minDist = this.radius + target.radius + extend
+    // these should always contain the pos
+    if (!this.positions.length) this.positions = [this.pos];
+    if (!target.positions.length) target.positions = [target.pos];
+    // check all possible points
+    this.positions.forEach(p => {
+      if (!hit) hit = target.pos.dist(p) <= minDist;
+    });
+    if (!hit) target.positions.forEach(p => {
+      if (!hit) hit = this.pos.dist(p) <= minDist;
+    });
+    if (!hit) return;
+    //return the toaching point
+    return p5.Vector.add(target.pos, this.pos).mult(0.5);
   }
 
   collide(target, extend) {
-    if (this.done);
+    if (this.done) return;
     if (target === this) return;
     if (this.collitions.includes(target)) return;
-    let normal = this.isTouching(target, extend);
-    if (!normal) return;
+    let touchPoint = this.isTouching(target, extend);
+    if (!touchPoint) return;
+    this.handleCollision(touchPoint, target);
+    target.handleCollision(touchPoint, this);
+    return true;
+  }
 
-    let push = sqrt(this.size / SIZE[TYPE.DOT]);
-    target.vel.add(normal.setMag(push));
-
-    push = sqrt(target.size / SIZE[TYPE.DOT]);
+  handleCollision(point, target) {
+    let normal = p5.Vector.sub(target.pos, point).normalize();
+    let push = sqrt(target.size / SIZE[TYPE.DOT]);
     this.vel.sub(normal.setMag(push));
-
     this.collitions.push(target);
-    target.collitions.push(this);
-    return normal;
   }
 }
