@@ -230,8 +230,8 @@ function loadLevel(level = 0) {
   // reinitiate variables
   world = Object.assign({}, WORLD);
   Object.assign(world, worlds[level]);
-  anims.forEach(anim => delete anim);
-  anims = [];
+  dots.forEach(dot => delete dot);
+  dots = [];
   pearl = new Cell({
     x: world.w2,
     y: world.h2,
@@ -308,19 +308,19 @@ function draw() {
   }
 
   // draw objects
-  anims.forEach(anim => anim.draw());
+  dots.forEach(dot => dot.draw());
 
   if (pause) return;
 
   // updating things
-  anims = anims.filter(anim => !anim.done);
-  anims.forEach(anim => anim.update());
+  dots = dots.filter(dot => !dot.done);
+  dots.forEach(dot => dot.update());
 
   // colliding targetting
-  cells = anims.filter(a => a.hasAgency);
-  drops = anims.filter(a => a.type === TYPE.DROP);
+  cells = dots.filter(a => a.hasAgency);
+  drops = dots.filter(a => a.gain > a.pain);
   cells.forEach(cell => {
-    anims.forEach(a => cell.collide(a));
+    dots.forEach(a => cell.collide(a));
     if (cell !== pearl) cell.reach(drops);
     cell.target(cells);
   });
@@ -385,16 +385,22 @@ function keyPressed() {
     props: [PROP.TAIL]
   });
   if (key === 's') return new Drop({
-    props: [PROP.HURL]
+    props: [PROP.HURT]
   });
   if (key === 'd') return new Drop({
-    props: [PROP.HURT]
+    props: [PROP.HURL]
   });
   if (key === 'f') return new Drop({
     props: [PROP.OVUM]
   });
   if (key === 'g') return new Drop({
     props: [PROP.SEED]
+  });
+  if (key === 'v') return new Drop({
+    props: [PROP.HALO]
+  });
+  if (key === 'c') return new Drop({
+    props: [PROP.HIDE]
   });
   if (key === 'i') {
     infoElem.set({}, true);

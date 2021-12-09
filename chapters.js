@@ -5,7 +5,7 @@ const setRate = (prop, val) => new Object({
 
 const worlds = [{
   title: 'Hi, Pearl.',
-  tagline: 'Try moving your head about and <b>eat the droplet</b>.',
+  tagline: 'Try moving your head about and <b>get the droplet</b>.',
   heat: 0,
   drops: [{
     x: WORLD.w2,
@@ -46,7 +46,7 @@ const worlds = [{
   }
 }, {
   title: "You've got company.",
-  tagline: "Zapphire and you may <b>bumb into each other</b>.",
+  tagline: "You and Zapphire may <b>bumb into each other</b>.",
   dropcap: 2,
   cells: [{
     x: 0,
@@ -60,7 +60,7 @@ const worlds = [{
   }
 }, {
   title: "Face scarsity.",
-  tagline: "Iris is here. But, there's only <b>two droplets at a time</b>.",
+  tagline: "Iris is here. But, there's only <b>two droplets at any time</b>.",
   dropcap: 2,
   cells: [{
       x: 0,
@@ -207,7 +207,7 @@ const worlds = [{
   tagline: "You will <b>not be seen or touched</b>.",
   dropcap: 4,
   drops: [{
-    props: [PROP.SOUL]
+    props: [PROP.HIDE]
   }],
   rate: {
     tail: 0.2,
@@ -216,7 +216,7 @@ const worlds = [{
     ovum: 0.2,
     halo: 0.2,
     seed: 0.2,
-    soul: 0.4,
+    HIDE: 0.4,
   },
   cells: [{
       x: 0,
@@ -241,7 +241,7 @@ const worlds = [{
     ovum: 0.2,
     halo: 0.2,
     seed: 0.2,
-    soul: 0.2,
+    HIDE: 0.2,
   },
   cells: [{
       x: 0,

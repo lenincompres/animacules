@@ -102,7 +102,7 @@ const PROP = {
   OVUM: 'ovum',
   SEED: 'seed',
   HALO: 'halo',
-  SOUL: 'soul',
+  HIDE: 'hide',
   JAWS: 'jaws',
   SICK: 'sick'
 }
@@ -115,4 +115,4 @@ const SAY = {
 
 const SPEED = 4 * SIZE.LINE / FRAMERATE;
 
-let anims = [];
+let dots = [];

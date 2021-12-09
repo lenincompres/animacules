@@ -3,45 +3,73 @@ class Drop extends Dot {
     if (!opt.type) opt.type = TYPE.DROP;
     super(opt);
     this.dew = 0;
-    this.props = opt.props ? opt.props : [];
-    // can't have both OVUM and SEED
-    if (this.has(PROP.OVUM) && this.has(PROP.SEED)) this.props = this.props.filter(prop => prop !== PROP.OVUM && prop !== PROP.SEED);
-    //factor or gain and pain it induces on collide
-    this.gain = 1;
     this.pain = 0;
+    this.gain = 1;
+    this.props = opt.props ? opt.props : [];
+
+    // props
+    this.addProp(PROP.FOOD);
+    // tails give acceleration
+    if (this.hasProp(PROP.TAIL)) this.acc = vectorRad(SPEED * SIZE[TYPE.DROP] / SIZE[TYPE.CELL], random(TWO_PI));
+    // can't have OVUM and SEED
+    if (this.hasProp(PROP.OVUM) && this.hasProp(PROP.SEED)) {
+      this.removeProp(PROP.OVUM);
+      this.removeProp(PROP.SEED);
+    }
   }
 
-  has(prop) {
+  hasProp(prop) {
     return this.props.includes(prop);
   }
 
+  addProp(prop) {
+    if (this.hasProp(prop)) return;
+    this.props.push(prop);
+  }
+
+  removeProp(props = []) {
+    if (!Array.isArray(props)) props = [props];
+    this.prop = this.props.filter(p => !props.includes[p]);
+  }
+
   get color() {
-    if (this.has(PROP.SOUL)) return colorSet(this._color, 0.25);
-    return this._color;
+    return colorSet(this._color, {
+      r: this.pain * 255,
+      g: this.gain * 255,
+    });
   }
 
   set color(colour) {
     super.color = colour;
   }
 
-  draw(full = true) {
-    super.draw(full);
-    if (this.has(PROP.OVUM)) this.drawOvum();
-    if (this.has(PROP.SEED)) this.drawSeed();
-    if (this.has(PROP.HALO)) this.drawHalo();
-    if (this.has(PROP.TAIL)) this.drawFlag();
-    if (this.has(PROP.HURL)) this.drawGun();
-    if (this.has(PROP.HURT)) this.drawThorns();
-    if (this.props.includes(PROP.TAIL)) this.drawFlag(1, PI);
+  getFill(){
+    if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.17);
+    return super.getFill();
   }
 
-  drawFlag(a = 1, ang = 0) {
-    a = min(a, 1);
+  getStroke(){
+    if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.34);
+    return super.getStroke();
+  }
+
+  draw() {
+    super.draw();
+    if (this.hasProp(PROP.OVUM)) this.drawOvum();
+    if (this.hasProp(PROP.SEED)) this.drawSeed();
+    if (this.hasProp(PROP.HALO)) this.drawHalo();
+    if (this.hasProp(PROP.TAIL)) this.drawTail();
+    if (this.hasProp(PROP.HURL)) this.drawHurl();
+    if (this.hasProp(PROP.HURT)) this.drawHurt();
+  }
+
+  drawTail(factor = 1, ang = 0) {
+    factor = min(factor, 1);
     this.inDraw(() => {
       noFill();
       rotate(PI + vectorAng(this.acc) + ang);
       translate(this.radius, 0);
-      let len = this.radius * a;
+      let len = this.radius * factor;
       let s = len * sin(15 * frameCount / FRAMERATE) * 0.34;
       beginShape();
       curveVertex(0, 0);
@@ -53,30 +81,44 @@ class Drop extends Dot {
     });
   }
 
-  drawThorns(thorn, colour) {
-    let n = 6;
-    let delta = PI / n;
-    if (!thorn) thorn = SIZE.LINE * 2;
-    this.inDraw(() => {
-      let tip = this.radius + thorn;
-      while (n) {
-        rotate(delta);
-        if (colour) {
-          stroke(colorSet(colour, colorAlpha(this.color)));
-          strokeWeight(SIZE.LINE * 2);
-          line(0, tip, 0, tip);
-          line(0, -tip, 0, -tip);
-        }
-        stroke(this.color);
-        strokeWeight(SIZE.LINE);
-        line(0, this.radius, 0, this.radius + thorn);
-        line(0, -this.radius, 0, -this.radius - thorn);
-        n -= 1;
+  drawHurt(thorn, colour) {
+    let isDrop = false;
+    if (!thorn) {
+      isDrop = true;
+      thorn = SIZE.LINE;
+      if (!this.hasProp(PROP.HALO)) {
+        this.gain = 1 + sin(2 * (t - this.t) / FRAMERATE);
+        this.pain = 1 - this.gain;
       }
+      colour = colorAdd(color(0), {
+        r: this.pain * 255,
+        g: this.gain * 255,
+        a: colorAlpha(this.color)
+      });
+    }
+    this.inDraw(() => {
+      stroke(colour);
+      strokeWeight(min(thorn + 1, SIZE.LINE * 3));
+      this.drawAround(this.radius + thorn);
+      stroke(this.color);
+      strokeWeight(SIZE.LINE);
+      this.drawAround(this.radius, thorn);
     });
   }
 
-  drawGun(ang = frameCount / FRAMERATE, colour) {
+  drawAround(dist = 0, len = 0, n = 6) {
+    let i = n;
+    let delta = PI / n;
+    push();
+    for (i = n; i; i -= 1) {
+      rotate(delta);
+      line(0, dist, 0, dist + len);
+      line(0, -dist, 0, -dist - len);
+    }
+    pop();
+  }
+
+  drawHurl(ang = frameCount / FRAMERATE, colour) {
     this.inDraw(() => {
       rotate(ang);
       translate(this.radius, 0);
@@ -88,7 +130,7 @@ class Drop extends Dot {
       fill(this.color);
       polygon(d * 0.3, 0, d, 3);
     });
-    this.gun = createVector(cos(ang), sin(ang)).setMag(this.radius * 1.5);
+    this.gun = vectorRad(this.radius * 1.5, ang);
   }
 
   drawOvum(radius = this.radius) {
