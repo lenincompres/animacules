@@ -46,10 +46,10 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Let's run!",
+  title: "Let's move!",
   tagline: "Bigger limbs will make you go faster.",
   ESP: {
-    title: "¡Vamos a correr!",
+    title: "¡Vamos, muévete!",
     tagline: "Las extemidades grandes te harán ir más rápido.",
   },
   drops: [{
