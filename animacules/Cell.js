@@ -98,31 +98,28 @@ class Cell extends Drop {
 
   drawEye() {
     this.inDraw(() => {
-      let diam = this.radius * 0.75;
-      let x = map(this.acc.mag(), 0, this.speed, 0, this.radius - diam * 0.5);
+      let radius = 0.45 * this.radius;
       this.eye = {
-        radius: diam * 0.5,
-        x: x,
+        x: map(this.acc.mag(), 0, this.speed, 0, this.radius - radius),
+        radius: radius,
         angle: vectorAng(this.acc)
       };
       fill(this.getStroke());
       rotate(this.eye.angle);
       translate(this.eye.x, 0);
-      circle(0, 0, diam);
+      circle(0, 0, 2 * radius);
     });
   }
 
   drawHurl() {
     if (!this.getTrait(PROP.HURL)) return;
     if (!this.pointAng) this.pointAng = 0;
-    let ang = frameCount / FRAMERATE;
     if (this.bullseye && this.bullseye.pos) {
       let bAng = vectorAng(p5.Vector.sub(this.bullseye.pos, this.pos));
       bAng = [bAng + PI * 2, bAng - PI * 2].reduce((b, a) => abs(this.pointAng - b) < abs(this.pointAng - a) ? b : a, bAng);
       this.pointAng += (bAng - this.pointAng) / 4;
     }
-    ang = this.pointAng;
-    super.drawHurl(ang, COLOR[this.hasTrait(PROP.HALO) ? TYPE.DROP : TYPE.SHOT]);
+    super.drawHurl(this.pointAng, COLOR[this.hasTrait(PROP.HALO) ? TYPE.DROP : TYPE.SHOT]);
   }
 
   drawHurt() {
@@ -199,7 +196,7 @@ class Cell extends Drop {
   reach(targets = []) {
     if (!targets.length) return;
     let target = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
-    if(!target) return this.acc.mult(0.68);
+    if (!target) return this.acc.mult(0.68);
     this.acc = p5.Vector.sub(target.pos, this.pos);
   }
 
@@ -212,7 +209,7 @@ class Cell extends Drop {
   }
 
   split(size = SIZE.BABY) {
-    if(size > this.size) size = 0.5 * this.size; // not bigger than half
+    if (size > this.size) size = 0.5 * this.size; // not bigger than half
     new Cell({
       x: this.pos.x,
       y: this.pos.y,
@@ -236,20 +233,15 @@ class Cell extends Drop {
     super.handleCollision(point, target);
     let maxBite = SIZE[TYPE.DROP];
     let eat = min(maxBite, target.size);
-    if (target.gain) {
-      let gain = eat * target.gain;
-      this.addTrait(PROP.GAIN, gain);
-      this.addTrait(PROP.PAIN, -gain);
-    }
-    if (target.pain) {
-      console.log(target.pain);
-      let pain = eat * target.pain;
+    let gain = eat * target.gain;
+    let pain = eat * target.pain + max(0, -gain);
+    if (gain) this.addTrait(PROP.GAIN, max(0, gain));
+    if (pain) {
       this.addTrait(PROP.PAIN, pain);
-      this.vel.mult(map(pain / maxBite, 0, 1, 1, -1)); //recoil
+      this.vel.mult(-pain / maxBite); // recoil
     }
     if (!target.hasAgency) {
-      let done = (eat >= target.size);
-      if (done) {
+      if (eat >= target.size) {
         this.vel.add(target.vel.mult(4 * eat / this.size));
         target.props.forEach(time => this.addTrait(time, target.size));
         target.size -= eat;

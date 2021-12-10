@@ -11,7 +11,6 @@ class Dot {
     this.pos = createVector(x, y);
     this.acc = createVector(0, 0);
     this.vel = createVector(0, 0);
-    this.dew = 0;
     this.type = type;
     this.size = size ? size : SIZE[this.type];
     this.color = color ? color : COLOR[this.type];

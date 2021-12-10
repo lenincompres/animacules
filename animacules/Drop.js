@@ -8,11 +8,12 @@ class Drop extends Dot {
     this.props = opt.props ? opt.props : [];
     this.velFactor = 0.25;
     this.ang = random(TWO_PI);
-    this.tick = true;
-
-    // tails give acceleration, can't have OVUM and SEED
-    if (this.hasProp(PROP.TAIL)) this.acc = vectorRad(this.velFactor * SPEED, this.ang);
-    if (this.hasProp(PROP.OVUM, PROP.SEED)) this.removeProp(PROP.OVUM, PROP.SEED);
+    this.toggle = true;
+    if (this.hasProp(PROP.TAIL))
+      this.acc = vectorRad(this.velFactor * SPEED, this.ang);
+    if (this.hasProp(PROP.OVUM, PROP.SEED))
+      this.removeProp(PROP.OVUM, PROP.SEED);
+    console.log(this.props);
   }
 
   set pain(val) {
@@ -40,7 +41,7 @@ class Drop extends Dot {
   }
 
   removeProp(...props) {
-    this.props = this.props.filter(p => !props.includes[p]);
+    this.props = this.props.filter(p => !props.includes(p));
   }
 
   get color() {
@@ -169,30 +170,24 @@ class Drop extends Dot {
     super.update();
     this.size -= SIZE[TYPE.DOT] * world.heat * this.dew / FRAMERATE;
 
-    //this is only for non pearl
+    // this is non for pearl
     if (this === pearl) return;
-
-    let tick = cos(this.age / FRAMERATE) > 0;
-    if (tick !== this.tick) {
+    let toggle = cos(this.age / FRAMERATE) > 0;
+    if (toggle !== this.toggle) {
       this.fire();
-      this.tick = tick;
+      this.toggle = toggle;
     }
 
-    //this is only for food
+    // this is only for food
     if (this.hasAgency) return;
-    if (this.hasProp(PROP.HALO)) {
-      this.pain = 0;
-      this.gain = 1;
-      return;
-    }
+    if (this.hasProp(PROP.HALO))
+      return [this.pain, this.gain] = [0, 1];
+    if (this.hasProp(PROP.HURT) && !this.hasProp(PROP.HURL))
+      return this.gain = 3 + 9 * sin(2 * this.age / FRAMERATE);
     this.pain = this.vel.mag() / LINEWEIGHT - 1;
-    if (this.hasProp(PROP.HURT) && !this.hasProp(PROP.HURL)) {
-      this.gain = 3 + 9 * sin(2 * this.age / FRAMERATE);
-    }
   }
 
   fire() {
-    if (this.hasAgency) return;
     if (!this.hasProp(PROP.HURL)) return;
     this.vel.add(this.gun.setMag(this.velFactor * SHOTSPEED));
   }
