@@ -63,7 +63,7 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Have a playmate.",
+  title: "Got a playmate.",
   tagline: "You may bumb into <b class='indigo'>Sapphire</b>.",
   ESP: {
     title: "Tienes compañía.",
