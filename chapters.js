@@ -46,11 +46,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Get out and move!",
-  tagline: "Big limbs will make you go faster.",
+  title: "Let's run!",
+  tagline: "Bigger limbs will make you go faster.",
   ESP: {
-    title: "¡Sal a moverte!",
-    tagline: "Las extemidades grandes te hacen correr.",
+    title: "¡Vamos a correr!",
+    tagline: "Las extemidades grandes te harán ir más rápido.",
   },
   drops: [{
     props: [PROP.TAIL]
