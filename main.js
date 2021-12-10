@@ -3,8 +3,8 @@
 
 function loadLevel(level) {
   console.log('loadLevel URL', level);
-  loadLevelHere(level);
-  //  window.location.src = `?level=${level}&language=${language}&control=${control}`
+  //loadLevelHere(level);
+  window.location.href = `?level=${level}&language=${language}&control=${control}`
 }
 
 let levelTime = 1;

@@ -216,10 +216,10 @@ const worlds = [{
   }
 }, {
   title: "Seedy reproduction",
-  tagline: "Prevents your splitting but triggers it in others.",
+  tagline: "Reduces your splitting, but triggers it in others.",
   ESP: {
     title: "Una reproducción vil",
-    tagline: "Reduce tu división pera la provoca en otros.",
+    tagline: "Reduce tu división, pero la provoca en otros.",
   },
   drops: [{
     props: [PROP.SEED]
@@ -282,6 +282,7 @@ const worlds = [{
     title: "¡Diviértete!",
     tagline: "No hay tiempo límite, solo rupervivencia.",
   },
+  dropcap: 3,
   rate: {
     tail: 0.2,
     hurt: 0.2,

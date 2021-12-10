@@ -13,7 +13,6 @@ class Drop extends Dot {
       this.acc = vectorRad(this.velFactor * SPEED, this.ang);
     if (this.hasProp(PROP.OVUM, PROP.SEED))
       this.removeProp(PROP.OVUM, PROP.SEED);
-    console.log(this.props);
   }
 
   set pain(val) {
