@@ -171,7 +171,7 @@ class Drop extends Dot {
 
     // this is non for pearl
     if (this === pearl) return;
-    let toggle = cos(this.age / FRAMERATE) > 0;
+    let toggle = cos(2 * this.age / FRAMERATE) > 0;
     if (toggle !== this.toggle) {
       this.fire();
       this.toggle = toggle;
@@ -179,8 +179,7 @@ class Drop extends Dot {
 
     // this is only for food
     if (this.hasAgency) return;
-    if (this.hasProp(PROP.HALO))
-      return [this.pain, this.gain] = [0, 1];
+    //if (this.hasProp(PROP.HALO)) return [this.pain, this.gain] = [0, 1];
     if (this.hasProp(PROP.HURT) && !this.hasProp(PROP.HURL))
       return this.gain = 3 + 9 * sin(2 * this.age / FRAMERATE);
     this.pain = this.vel.mag() / LINEWEIGHT - 1;
@@ -188,6 +187,7 @@ class Drop extends Dot {
 
   fire() {
     if (!this.hasProp(PROP.HURL)) return;
+    if (this.hasAgency) return;
     this.vel.add(this.gun.setMag(this.velFactor * SHOTSPEED));
   }
 }

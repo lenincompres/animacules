@@ -1,9 +1,6 @@
 // Video
-
-
 function loadLevel(level) {
-  console.log('loadLevel URL', level);
-  //loadLevelHere(level);
+  if(!chapters[level]) return loadLevel(currentLevel);
   window.location.href = `?level=${level}&language=${language}&control=${control}`
 }
 
@@ -58,6 +55,9 @@ function setup() {
     },
     b_violet: {
       color: 'mediumorchid',
+    },
+    b_hot: {
+      color: COLOR.HOT,
     },
     i: {
       color: COLOR.NOT
@@ -211,7 +211,7 @@ function setup() {
               select: {
                 id: 'levelSelect',
                 onchange: e => loadLevel(e.target.value),
-                option: worlds.map((w, i) => new Object({
+                option: chapters.map((w, i) => new Object({
                   text: i + 1,
                   value: i
                 }))
@@ -256,12 +256,12 @@ function setLanguage(l) {
 function loadLevelHere(level = 0) {
   level = parseInt(level);
   if (level < 0) level = 0;
-  if (!worlds[level]) return;
+  if (!chapters[level]) return;
 
   pause = true;
   // reinitiate variables
   world = Object.assign({}, WORLD);
-  Object.assign(world, worlds[level]);
+  Object.assign(world, chapters[level]);
   dots.forEach(dot => delete dot);
   dots = [];
   pearl = new Cell({
@@ -328,7 +328,7 @@ function draw() {
   }
 
   // pearl updates
-  if (!pearl.done) {
+  if (pearl && !pearl.done) {
     let intent = p5.Vector.sub(pointer, pearl.pos);
     pearl.acc = vectorClone(intent);
     // draw intendend movement
@@ -361,7 +361,8 @@ function draw() {
   });
 
   //adding food
-  if (world.droprate && !((levelTime/ world.droprate) % FRAMERATE)) addDrop();
+  if (world.droprate && !(levelTime % round(FRAMERATE / world.droprate))) 
+    addDrop();
 
   // possible game endings
   if (pearl.done) gameOver();
@@ -398,8 +399,8 @@ function mouseClicked() {
 }
 
 function addDrop(props = []) {
-  if (typeof world.dropcap !== 'number') return;
-  let cap = world.dropcap * SIZE[TYPE.DROP];
+  dropcap = isNaN(world.dropcap) ? cells.length - 1 : world.dropcap;
+  let cap = max(1, dropcap) * SIZE[TYPE.DROP];
   let food = drops.reduce((o, a) => o += a.size, 0);
   if (food > cap - SIZE[TYPE.DROP]) return;
   if (world.rate) Object.values(PROP).forEach(prop => {
@@ -469,7 +470,7 @@ function nextLevel() {
       h4: copyText.value.goodJob
     },
     callback: () => loadLevel(currentLevel + 1),
-    close: 3
+    close: 2
   });
 }
 

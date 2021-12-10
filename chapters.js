@@ -3,7 +3,7 @@ const setRate = (prop, val) => new Object({
   val: val
 });
 
-const worlds = [{
+const chapters = [{
   title: 'Hi, little Pearl.',
   tagline: 'Move your head about and get the <b>droplet</b>.',
   ESP: {
@@ -35,10 +35,10 @@ const worlds = [{
   }
 }, {
   title: "It's hot outside.",
-  tagline: 'You need to <b>eat</b> so not to shrink.',
+  tagline: "You need to eat so not to <b class='hot'>shrink</b>.",
   ESP: {
     title: "Afuera hace calor.",
-    tagline: "Debes <b>comer</b> para no desaparecer.",
+    tagline: "Debes comer para no <b class='hot'>desaparecer</b>.",
   },
   dropcap: 1,
   heat: 1.34,
@@ -63,10 +63,10 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "You won't be alone.",
+  title: "Some company.",
   tagline: "You may bumb into <b class='indigo'>Sapphire<b>.",
   ESP: {
-    title: "No estarás a solas.",
+    title: "Tienes compañía.",
     tagline: "Puedes toparte con <b class='indigo'>Zafiro</b>.",
   },
   heat: 1.5,
@@ -104,11 +104,11 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "Ouch!",
-  tagline: "When thorns sprout, you get <i>hurt</i>.",
+  title: "Ouch! Be careful.",
+  tagline: "Thorns sprout. You'll get <i>hurt</i>.",
   ESP: {
-    title: "¡Ay!",
-    tagline: "Si brotan espinas, os haréis <i>daño</i>.",
+    title: "¡Ay! Cuidado.",
+    tagline: "Brotan espinas. Os haréis <i>daño</i>.",
   },
   drops: [{
     props: [PROP.HURT]
@@ -186,10 +186,10 @@ const worlds = [{
   }
 }, {
   title: "Now, nurture.",
-  tagline: "A <b>halo</b> makes you sprout and spew <b>droplets</b>.",
+  tagline: "A <b>halo</b> makes you sprout and spew droplets.",
   ESP: {
     title: "Ahora, nutre.",
-    tagline: "Un <b>halo</b> te hace brotar y arrojar <b>gotitas</b>.",
+    tagline: "Un <b>halo</b> te hace brotar y arrojar gotitas.",
   },
   drops: [{
     props: [PROP.HALO]
@@ -216,10 +216,10 @@ const worlds = [{
   }
 }, {
   title: "Seedy reproduction",
-  tagline: "Reduces your splitting, but triggers it in others.",
+  tagline: "Reduces your splitting, and triggers it in others.",
   ESP: {
     title: "Una reproducción vil",
-    tagline: "Reduce tu división, pero la provoca en otros.",
+    tagline: "Reduce tu división y la provoca en otros.",
   },
   drops: [{
     props: [PROP.SEED]
@@ -276,13 +276,12 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "Have Fun.",
+  title: "Good bye, and have Fun!",
   tagline: "There's no time limit, just survival.",
   ESP: {
-    title: "¡Diviértete!",
+    title: "¡Adiós y que te diviertas!",
     tagline: "No hay tiempo límite, solo rupervivencia.",
   },
-  dropcap: 3,
   rate: {
     tail: 0.2,
     hurt: 0.2,

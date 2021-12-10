@@ -53,7 +53,7 @@ const WORLD = {
   h: 600,
   frix: 0.9,
   droprate: 1,
-  dropcap: 2,
+  //dropcap: 2,
   heat: 1
 }
 WORLD.w2 = WORLD.w * 0.5;

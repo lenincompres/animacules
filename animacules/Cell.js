@@ -116,8 +116,11 @@ class Cell extends Drop {
     if (!this.pointAng) this.pointAng = 0;
     if (this.bullseye && this.bullseye.pos) {
       let bAng = vectorAng(p5.Vector.sub(this.bullseye.pos, this.pos));
+      /*
       bAng = [bAng + PI * 2, bAng - PI * 2].reduce((b, a) => abs(this.pointAng - b) < abs(this.pointAng - a) ? b : a, bAng);
       this.pointAng += (bAng - this.pointAng) / 4;
+      */
+     this.pointAng = bAng;
     }
     super.drawHurl(this.pointAng, COLOR[this.hasTrait(PROP.HALO) ? TYPE.DROP : TYPE.SHOT]);
   }
@@ -164,13 +167,13 @@ class Cell extends Drop {
     this.acc.limit(this.speed);
     // reduce traits
     let sec = 6 / FRAMERATE;
-    let dim = SIZE[TYPE.DOT] / FRAMERATE;
+    let dim = SIZE[TYPE.DROP] / FRAMERATE / 5;
     if (this.getTrait(PROP.GAIN)) this.size -= this.incTrait(PROP.GAIN, -sec);
     if (this.getTrait(PROP.PAIN)) this.size += this.incTrait(PROP.PAIN, -sec);
     if (this.getTrait(PROP.TAIL)) this.addTrait(PROP.TAIL, -dim);
     if (this.getTrait(PROP.HURT)) this.addTrait(PROP.HURT, -dim);
     if (this.getTrait(PROP.HIDE)) this.addTrait(PROP.HIDE, -dim);
-    if (this.getTrait(PROP.SEED)) this.addTrait(PROP.SEED, -dim);
+    if (this.getTrait(PROP.SEED)) this.addTrait(PROP.SEED, -0.5 * dim);
     if (this.getTrait(PROP.HALO)) this.addTrait(PROP.HALO, -0.5 * dim);
     //Reproduction
     if (this.getTrait(PROP.SEED) && this.getTrait(PROP.OVUM)) {
@@ -180,7 +183,7 @@ class Cell extends Drop {
     }
     let ovum = this.getTrait(PROP.OVUM);
     if (ovum) {
-      this.size += dim * 0.5;
+      this.size += dim;
       this.addTrait(PROP.OVUM, dim);
       if (this.size <= 1.5 * SIZE.BABY) this.removeTrait(PROP.OVUM);
       else if (ovum >= SIZE.BABY) this.split();
