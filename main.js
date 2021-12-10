@@ -13,6 +13,7 @@ let world = WORLD;
 let pause = false;
 let goalMet = false;
 let showInfo = false;
+let sound = {};
 const dayTime = new Binder(0);
 const heat = new Binder(1);
 const copyText = new Binder(COPY);
@@ -38,6 +39,8 @@ setLanguage(language);
 
 function preload() {
   classifier = ml5.soundClassifier(soundModel + 'model.json');
+  sound.gain = loadSound('assets/gain.mp3');
+  sound.pain = loadSound('assets/pain.mp3');
 }
 
 function setup() {
@@ -332,7 +335,7 @@ function draw() {
   fill(colorSet(0, {
     r: heat.value * 10,
     g: heat.value * 5,
-    a: 0.86
+    a: 0.83
   }));
   rect(0, 0, WORLD.w, WORLD.h);
   pop();

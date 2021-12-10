@@ -181,7 +181,7 @@ class Cell extends Drop {
     if (ovum) {
       this.size += dim;
       this.addTrait(PROP.OVUM, dim);
-      if (this.size <= SIZE.BABY) this.removeTrait(PROP.OVUM); 
+      if (this.size <= SIZE.BABY) this.removeTrait(PROP.OVUM);
       if (ovum >= SIZE.BABY) this.split();
     }
   }
@@ -247,7 +247,9 @@ class Cell extends Drop {
     let eat = min(maxBite, target.size);
     let gain = eat * target.gain;
     let pain = eat * target.pain + max(0, -gain);
-    if (gain) this.addTrait(PROP.GAIN, max(0, gain));
+    if (gain) {
+      this.addTrait(PROP.GAIN, max(0, gain));
+    }
     if (pain) {
       this.addTrait(PROP.PAIN, pain);
       this.vel.mult(-pain / maxBite); // recoil
