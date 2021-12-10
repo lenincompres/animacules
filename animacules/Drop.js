@@ -168,17 +168,16 @@ class Drop extends Dot {
     super.update();
     this.size -= SIZE[TYPE.DOT] * world.heat * this.dew / FRAMERATE;
 
-    // this is non for pearl
     if (this === pearl) return;
+    // this is non for pearl
     let toggle = cos(2 * this.age / FRAMERATE) > 0;
     if (toggle !== this.toggle) {
       this.fire();
       this.toggle = toggle;
     }
 
-    // this is only for food
     if (this.hasAgency) return;
-    //if (this.hasProp(PROP.HALO)) return [this.pain, this.gain] = [0, 1];
+    // this is only for food
     if (this.hasProp(PROP.HURT) && !this.hasProp(PROP.HURL))
       return this.gain = 3 + 9 * sin(2 * this.age / FRAMERATE);
     this.pain = this.vel.mag() / LINEWEIGHT - 1;

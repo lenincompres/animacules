@@ -111,18 +111,12 @@ class Cell extends Drop {
     });
   }
 
-  drawHurl() {
+  drawHurl(ang = 0) {
     if (!this.getTrait(PROP.HURL)) return;
-    if (!this.pointAng) this.pointAng = 0;
     if (this.bullseye && this.bullseye.pos) {
-      let bAng = vectorAng(p5.Vector.sub(this.bullseye.pos, this.pos));
-      /*
-      bAng = [bAng + PI * 2, bAng - PI * 2].reduce((b, a) => abs(this.pointAng - b) < abs(this.pointAng - a) ? b : a, bAng);
-      this.pointAng += (bAng - this.pointAng) / 4;
-      */
-      this.pointAng = bAng;
+      ang = vectorAng(p5.Vector.sub(this.bullseye.pos, this.pos));
     }
-    super.drawHurl(this.pointAng, COLOR[this.hasTrait(PROP.HALO) ? TYPE.DROP : TYPE.SHOT]);
+    super.drawHurl(ang, COLOR[this.hasTrait(PROP.HALO) ? TYPE.DROP : TYPE.SHOT]);
   }
 
   drawHurt() {
@@ -165,22 +159,23 @@ class Cell extends Drop {
     if (this.done) return delete this;
     super.update();
     this.acc.limit(this.speed);
+
     // reduce traits
     let dim = SIZE[TYPE.DROP] / FRAMERATE / 5;
+    // affect with time
     if (this.getTrait(PROP.GAIN)) this.size -= this.incTrait(PROP.GAIN, -0.2 * dim);
     if (this.getTrait(PROP.PAIN)) this.size += this.incTrait(PROP.PAIN, -0.2 * dim);
+    // reduced with time
     if (this.getTrait(PROP.TAIL)) this.addTrait(PROP.TAIL, -dim);
     if (this.getTrait(PROP.HURT)) this.addTrait(PROP.HURT, -dim);
     if (this.getTrait(PROP.HIDE)) this.addTrait(PROP.HIDE, -dim);
-    if (this.getTrait(PROP.SEED)) this.addTrait(PROP.SEED, -0.5 * dim);
-    if (this.getTrait(PROP.HALO)) this.addTrait(PROP.HALO, -0.5 * dim);
     //sickness
     if (this.getTrait(PROP.SICK)) this.addTrait(PROP.SICK, -dim);
     //Reproduction
     if (this.getTrait(PROP.SEED) && this.getTrait(PROP.OVUM)) {
-      let minor = min(this.getTrait(PROP.SEED), this.getTrait(PROP.OVUM));
-      this.addTrait(PROP.OVUM, -minor);
-      this.addTrait(PROP.SEED, -minor);
+      let redux = min(this.getTrait(PROP.SEED), this.getTrait(PROP.OVUM));
+      this.addTrait(PROP.OVUM, -redux);
+      this.addTrait(PROP.SEED, -redux);
     }
     let ovum = this.getTrait(PROP.OVUM);
     if (ovum) {
@@ -221,16 +216,17 @@ class Cell extends Drop {
       shooter: this,
     });
     this.addTrait(PROP.HURL, -shot.size);
+    this.addTrait(PROP.HALO, -shot.size);
     this.addTrait(PROP.SEED, -shot.size);
   }
 
-  split(size) {
-    if (!size) size = 0.42 * this.size; // not bigger than half
+  split(factor = 0.42, mutation = sin(random(PI)) * 20) {
+    let size = factor * this.size;
     new Cell({
       x: this.pos.x,
       y: this.pos.y,
       size: size,
-      mutation: sin(random(PI)) * 20,
+      mutation: mutation,
       mom: this
     });
     this.addTrait(PROP.PAIN, size);
@@ -266,8 +262,8 @@ class Cell extends Drop {
       if (this.hasTrait(PROP.HURT)) {
         let hurt = min(this.getTrait(PROP.HURT), SIZE[TYPE.DROP]);
         this.addTrait(PROP.HURT, -hurt);
-        hurt *= 2;
-        target.addTrait(this.hasTrait(PROP.HALO) ? PROP.GAIN : PROP.PAIN, hurt);
+        target.addTrait(this.hasTrait(PROP.HALO) ? PROP.GAIN : PROP.PAIN, 2 * hurt);
+        this.addTrait(PROP.HALO, -hurt);
         target.vel.add(p5.Vector.sub(target.pos, point).setMag(sqrt(hurt / SIZE[TYPE.DOT])));
       }
       if (this.hasTrait(PROP.SEED)) {

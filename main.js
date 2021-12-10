@@ -27,7 +27,7 @@ let poses = [];
 
 // Teachable Machine model URL:
 let classifier;
-let soundModel = 'https://teachablemachine.withgoogle.com/models/_WKomoh3c/';
+let soundModel = 'https://teachablemachine.withgoogle.com/models/eiQSfOrFP/';
 
 /* P5 and DOM */
 const QS = DOM.querystring();

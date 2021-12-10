@@ -34,7 +34,7 @@ const COPY = {
   },
   ESP: {
     title: 'animalucos',
-    tagline: 'by Lenino',
+    tagline: 'de Lenino',
     credits: `Creado por ${LINK.lenino} usando ${LINK.p5}, ${LINK.ml5} y ${LINK.DOM}.`,
     goodJob: '¡Bien hecho!',
     menu: {

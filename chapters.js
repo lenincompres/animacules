@@ -63,7 +63,7 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Got a playmate.",
+  title: "Meet others.",
   tagline: "You may bumb into <b class='indigo'>Sapphire</b>.",
   ESP: {
     title: "Tienes compañía.",
@@ -133,7 +133,7 @@ const chapters = [{
   title: "Spew unpleasantries.",
   tagline: ["Say: <i>Pew pew!<i>"],
   ESP: {
-    title: "Ahora se arrojan cosas.",
+    title: "Se arrojan cosas.",
     tagline: "Diciendo: <i>¡Piu, piu!</i>.",
   },
   drops: [{
@@ -157,10 +157,10 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Reproduction happens.",
+  title: "Add, multiply… divide.",
   tagline: "You will <b>grow</b> until you <i>split</i>.",
   ESP: {
-    title: "Llega la reproducción.",
+    title: "Suma, multiplica… divide.",
     tagline: "Vais a <b>crecer</b> hasta <i>dividiros</i>.",
   },
   drops: [{
@@ -185,7 +185,7 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Seedy reproduction",
+  title: "A seedy reproduction",
   tagline: "Reduces your splitting, and triggers it in others.",
   ESP: {
     title: "Una reproducción vil",
@@ -251,6 +251,7 @@ const chapters = [{
     title: "Para terminar, incorporeidad.",
     tagline: "No podrán verte ni tocarte.",
   },
+  heat: 1.5,
   drops: [{
     props: [PROP.HIDE]
   }],
