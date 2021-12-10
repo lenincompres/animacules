@@ -3,12 +3,13 @@ class Drop extends Dot {
     if (!opt.type) opt.type = TYPE.DROP;
     super(opt);
     this.dew = 0.5;
-    this.pain = 0; // from 0 to 1
-    this.gain = 1; // from -1 (harmful) to 1
     this.props = opt.props ? opt.props : [];
     this.velFactor = 0.25;
     this.ang = random(TWO_PI);
     this.toggle = true;
+    this.pain = 0; // from 0 to 1
+    this.gain = 1; // from -1 (harmful) to 1
+    this.sick = this.hasProp(PROP.SICK) ? 1 : 0;
     if (this.hasProp(PROP.TAIL))
       this.acc = vectorRad(this.velFactor * SPEED, this.ang);
     if (this.hasProp(PROP.OVUM, PROP.SEED))
@@ -45,8 +46,9 @@ class Drop extends Dot {
 
   get color() {
     return colorSet(this._color, {
-      r: 255 * (this.pain - min(0, this.gain)),
-      g: 255 * (max(0, this.gain) - this.pain),
+      r: 255 * (this.pain - min(0, this.gain) - this.sick * 0.5),
+      g: 255 * (max(0, this.gain) - this.pain - this.sick * 0.5),
+      b: 255 * this.sick,
     });
   }
 
@@ -93,14 +95,13 @@ class Drop extends Dot {
   }
 
   drawHurt(thorn, colour) {
-    if (!thorn) {
-      thorn = LINEWEIGHT;
-      colour = this.color;
-    }
+    if (!thorn) thorn = LINEWEIGHT;
     this.inDraw(() => {
-      stroke(colour);
-      strokeWeight(min(thorn + 1, LINEWEIGHT * 3));
-      this.drawAround(this.radius + thorn);
+      if (colour) {
+        stroke(colour);
+        strokeWeight(min(thorn + 1, LINEWEIGHT * 3));
+        this.drawAround(this.radius + thorn);
+      }
       stroke(this.color);
       strokeWeight(LINEWEIGHT);
       this.drawAround(this.radius, thorn);
@@ -109,14 +110,12 @@ class Drop extends Dot {
 
   drawAround(dist = 0, len = 0, n = 6) {
     let delta = PI / n;
-    push();
     while (n) {
       rotate(delta);
       line(0, dist, 0, dist + len);
       line(0, -dist, 0, -dist - len);
       n -= 1;
     }
-    pop();
   }
 
   drawHurl(ang = this.ang, colour) {

@@ -4,11 +4,11 @@ const setRate = (prop, val) => new Object({
 });
 
 const chapters = [{
-  title: 'Hi, little Pearl.',
-  tagline: 'Move your head about and get the <b>droplet</b>.',
+  title: 'Hi, little Pearl!',
+  tagline: 'Can you move your head until you get the <b>droplet</b>?',
   ESP: {
-    title: "Hola, pequeña Perla.",
-    tagline: "Mueve tu cabeza y alcanza la <b>gotita</b>.",
+    title: "¡Hola, pequeña Perla!",
+    tagline: "¿Pueder mover tu cabeza hasta alcanzar la <b>gotita</b>?",
   },
   size: 0.34 * SIZE[TYPE.CELL],
   dropcap: 1,
@@ -22,10 +22,10 @@ const chapters = [{
   }
 }, {
   title: 'You gotta be big.',
-  tagline: "Nothing else to do but eat <b>droplets</b> and grow.",
+  tagline: "Nothing else to do but <b>eat</b> and grow.",
   ESP: {
     title: "Debes ser grande.",
-    tagline: "Nada más que hacer: tomar <b>gotitas</b> y crecer.",
+    tagline: "Nada más que hacer que <b>comer</b> y crecer.",
   },
   size: 0.5 * SIZE[TYPE.CELL],
   dropcap: 1,
@@ -34,10 +34,10 @@ const chapters = [{
     size: 0.5 * SIZE[TYPE.CELL] + SIZE[TYPE.DROP] * 4
   }
 }, {
-  title: "It's hot outside.",
+  title: "It's hot out there.",
   tagline: "You need to eat so not to <b class='hot'>shrink</b>.",
   ESP: {
-    title: "Afuera hace calor.",
+    title: "Hace calor afuera.",
     tagline: "Debes comer para no <b class='hot'>desaparecer</b>.",
   },
   dropcap: 1,
@@ -46,11 +46,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Wave your flagella.",
-  tagline: "Limbs make you go faster.",
+  title: "Get out and move!",
+  tagline: "Big limbs will make you go faster.",
   ESP: {
-    title: "Agita tus flagelos.",
-    tagline: "Las extremidades te hacen ir más rápido.",
+    title: "¡Sal a moverte!",
+    tagline: "Las extemidades grandes te hacen correr.",
   },
   drops: [{
     props: [PROP.TAIL]
@@ -63,8 +63,8 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Some company.",
-  tagline: "You may bumb into <b class='indigo'>Sapphire<b>.",
+  title: "Have a playmate.",
+  tagline: "You may bumb into <b class='indigo'>Sapphire</b>.",
   ESP: {
     title: "Tienes compañía.",
     tagline: "Puedes toparte con <b class='indigo'>Zafiro</b>.",
@@ -81,12 +81,12 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "There's scarcity.",
-  tagline: "<b class='violet'>Iris</b> is here too, but we have few droplets.",
-  heat: 1.5,
+  title: "Face scarcity.",
+  tagline: "Do we have enough for <b class='violet'>Iris</b> too?",
+  heat: 1.6,
   ESP: {
     title: "Hay escasez.",
-    tagline: "Llegó <b class='violet'>Iris</b>, pero tenemos pocas gotas.",
+    tagline: "¿Habrá suficiente para <b class='violet'>Iris</b> también?",
   },
   cells: [{
       x: 0,
@@ -104,11 +104,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Ouch! Be careful.",
-  tagline: "Thorns sprout. You'll get <i>hurt</i>.",
+  title: "Be careful!",
+  tagline: "You'll get <i>hurt</i> when thorns sprout.",
   ESP: {
-    title: "¡Ay! Cuidado.",
-    tagline: "Brotan espinas. Os haréis <i>daño</i>.",
+    title: "¡Con cuidado!",
+    tagline: "Os haréis <i>daño</i> cuando broten espinas.",
   },
   drops: [{
     props: [PROP.HURT]
@@ -133,7 +133,7 @@ const chapters = [{
   title: "Spew unpleasantries.",
   tagline: ["Say: <i>Pew pew!<i>"],
   ESP: {
-    title: "Se arrojan las cosas.",
+    title: "Ahora se arrojan cosas.",
     tagline: "Diciendo: <i>¡Piu, piu!</i>.",
   },
   drops: [{
@@ -185,22 +185,21 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Now, nurture.",
-  tagline: "A <b>halo</b> makes you sprout and spew droplets.",
+  title: "Seedy reproduction",
+  tagline: "Reduces your splitting, and triggers it in others.",
   ESP: {
-    title: "Ahora, nutre.",
-    tagline: "Un <b>halo</b> te hace brotar y arrojar gotitas.",
+    title: "Una reproducción vil",
+    tagline: "Reduce tu división y la provoca en los demás.",
   },
   drops: [{
-    props: [PROP.HALO]
+    props: [PROP.SEED]
   }],
-  heat: 1.5,
   rate: {
     tail: 0.2,
     hurt: 0.2,
     hurl: 0.2,
     ovum: 0.2,
-    halo: 0.4,
+    seed: 0.4,
   },
   cells: [{
       x: 0,
@@ -215,22 +214,23 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Seedy reproduction",
-  tagline: "Reduces your splitting, and triggers it in others.",
+  title: "Time to nurture.",
+  tagline: "A <b>halo</b> makes you sprout and spew droplets.",
   ESP: {
-    title: "Una reproducción vil",
-    tagline: "Reduce tu división y la provoca en otros.",
+    title: "Toca nutrir.",
+    tagline: "Un <b>halo</b> te hace brotar y arrojar gotitas.",
   },
   drops: [{
-    props: [PROP.SEED]
+    props: [PROP.HALO]
   }],
+  heat: 1.7,
   rate: {
     tail: 0.2,
     hurt: 0.2,
     hurl: 0.2,
     ovum: 0.2,
-    halo: 0.2,
-    seed: 0.4,
+    seed: 0.2,
+    halo: 0.4,
   },
   cells: [{
       x: 0,
@@ -276,11 +276,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Good bye, and have Fun!",
-  tagline: "There's no time limit, just survival.",
+  title: "Goodbye! Have Fun!",
+  tagline: "There're no limits, just survival.",
   ESP: {
-    title: "¡Adiós y que te diviertas!",
-    tagline: "No hay tiempo límite, solo rupervivencia.",
+    title: "¡Adiós y Diviértete!",
+    tagline: "No hay límites, solo rupervivencia.",
   },
   rate: {
     tail: 0.2,

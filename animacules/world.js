@@ -15,6 +15,7 @@ const LINK = {
 
 const COPY = {
   title: 'animacules',
+  tagline: 'by Lenino',
   credits: `Created by ${LINK.lenino} using ${LINK.p5}, ${LINK.ml5} and ${LINK.DOM}.`,
   goodJob: 'Good job!',
   menu: {
@@ -33,6 +34,7 @@ const COPY = {
   },
   ESP: {
     title: 'animalucos',
+    tagline: 'by Lenino',
     credits: `Creado por ${LINK.lenino} usando ${LINK.p5}, ${LINK.ml5} y ${LINK.DOM}.`,
     goodJob: '¡Bien hecho!',
     menu: {
@@ -52,9 +54,9 @@ const WORLD = {
   w: 800,
   h: 600,
   frix: 0.9,
-  droprate: 1,
-  //dropcap: 2,
-  heat: 1
+  heat: 1,
+  droprate: 1, // one each second
+  //dropcap: 2, //no cap means ond less than cells, down to 1
 }
 WORLD.w2 = WORLD.w * 0.5;
 WORLD.h2 = WORLD.h * 0.5;
@@ -102,6 +104,7 @@ const PROP = {
   PAIN: 'pain',
   TAIL: 'tail',
   HURT: 'hurt',
+  SICK: 'sick',
   HURL: 'hurl',
   MAIL: 'mail',
   OVUM: 'ovum',

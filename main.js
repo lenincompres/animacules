@@ -42,25 +42,21 @@ function preload() {
 
 function setup() {
   DOM.style({
-    body: {
-      background: COLOR.LIGHT,
-      color: COLOR.DARK
-    },
     b: {
       color: COLOR.YES,
       fontWeight: 'bold',
+    },
+    i: {
+      color: COLOR.NOT
     },
     b_indigo: {
       color: 'cornflowerblue',
     },
     b_violet: {
-      color: 'mediumorchid',
+      color: 'mediumpurple',
     },
     b_hot: {
       color: COLOR.HOT,
-    },
-    i: {
-      color: COLOR.NOT
     },
     small: {
       textTransform: 'uppercase',
@@ -102,6 +98,8 @@ function setup() {
     description: 'Use gestures and voice to survive as a microscopic organism.',
     keywords: 'game,p5,ml5,poseNet,lenino,lenin compres',
     viewport: 'width=device-width,initial-scale=1',
+    background: heat.bind(val => val ? COLOR.LIGHT : COLOR.DARK),
+    color: heat.bind(val => val ? COLOR.DARK : COLOR.LIGHT),
     font: [{
       fontFamily: 'main',
       src: 'url(assets/Biryani-Light.ttf)'
@@ -119,6 +117,20 @@ function setup() {
         text: copyText.bind(c => c.title),
         onclick: e => window.location.href = './'
       },
+      b:{
+        fontSize: '0.86em',
+        position: 'absolute',
+        top: 0,
+        left: '50%',
+        margin: '0 6em',
+        padding: '0.34em',
+        lineHeight: '1em',
+        color: COLOR.DARK,
+        backgroundColor: COLOR.HOT,
+        borderRadius: '1em',
+        pointerEvents: 'none',
+        text: copyText.bind(c => c.tagline),
+      },
       p: {
         fontSize: '1.25em',
         textTransform: 'capitalize',
@@ -127,13 +139,16 @@ function setup() {
     },
     section: {
       width: world.w + 'px',
-      margin: '0 auto ',
+      margin: '0 auto',
       main: {
         position: 'relative',
         width: world.w + 'px',
         height: world.h + 'px',
         backgroundColor: 'black',
-        canvas: createCanvas(WORLD.w, WORLD.h),
+        boxShadow: '0 0 3px ' + COLOR.PALE,
+        canvas: {
+          content: createCanvas(WORLD.w, WORLD.h)
+        },
         aside: [{
           div: {
             id: 'promptElem',
@@ -186,6 +201,7 @@ function setup() {
                     text: value,
                     value: key,
                   })),
+                  value: language,
                   onchange: e => setLanguage(e.target.value)
                 }
               }, {
@@ -202,7 +218,10 @@ function setup() {
                     }
                   }),
                   value: control,
-                  onchange: e => control = e.target.value
+                  onchange: e => {
+                    control = e.target.value;
+                    loadLevel();
+                  }
                 }
               },
               {
@@ -211,19 +230,20 @@ function setup() {
                 },
                 select: {
                   id: 'levelSelect',
-                  onchange: e => loadLevel(e.target.value),
                   option: chapters.map((w, i) => new Object({
                     text: i + 1,
                     value: i
-                  }))
+                  })),
+                  value: currentLevel,
+                  onchange: e => loadLevel(e.target.value),
                 }
               }
             ]
           }
         },
-          p: {
-            content: copyText.bind(c => c.credits)
-          }
+        p: {
+          content: copyText.bind(c => c.credits)
+        }
       },
     }
   });
@@ -279,7 +299,7 @@ function loadLevelHere(level = 0) {
     h2: title,
     p: getLevelText('tagline')
   });
-  levelTitle.set(`${copyText.value.menu.chapter} ${level+1} — ${title}`);
+  levelTitle.set(`${copyText.value.menu.chapter} ${level+1}: ${title}`);
   // start level
   currentLevel = level;
   levelSelect.value = level;
@@ -466,7 +486,7 @@ function nextLevel() {
       h4: copyText.value.goodJob
     },
     callback: () => loadLevel(currentLevel + 1),
-    close: 2
+    close: 1.5
   });
 }
 

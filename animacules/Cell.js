@@ -120,7 +120,7 @@ class Cell extends Drop {
       bAng = [bAng + PI * 2, bAng - PI * 2].reduce((b, a) => abs(this.pointAng - b) < abs(this.pointAng - a) ? b : a, bAng);
       this.pointAng += (bAng - this.pointAng) / 4;
       */
-     this.pointAng = bAng;
+      this.pointAng = bAng;
     }
     super.drawHurl(this.pointAng, COLOR[this.hasTrait(PROP.HALO) ? TYPE.DROP : TYPE.SHOT]);
   }
@@ -174,6 +174,8 @@ class Cell extends Drop {
     if (this.getTrait(PROP.HIDE)) this.addTrait(PROP.HIDE, -dim);
     if (this.getTrait(PROP.SEED)) this.addTrait(PROP.SEED, -0.5 * dim);
     if (this.getTrait(PROP.HALO)) this.addTrait(PROP.HALO, -0.5 * dim);
+    //sickness
+    if (this.getTrait(PROP.SICK)) this.addTrait(PROP.SICK, -dim);
     //Reproduction
     if (this.getTrait(PROP.SEED) && this.getTrait(PROP.OVUM)) {
       let minor = min(this.getTrait(PROP.SEED), this.getTrait(PROP.OVUM));
@@ -210,13 +212,25 @@ class Cell extends Drop {
     this.bullseye = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
   }
 
+  fire() {
+    if (!this.hasTrait(PROP.HURL)) return;
+    let shot = new Shot({
+      x: this.pos.x + this.gun.x,
+      y: this.pos.y + this.gun.y,
+      vel: this.gun,
+      shooter: this,
+    });
+    this.addTrait(PROP.HURL, -shot.size);
+    this.addTrait(PROP.SEED, -shot.size);
+  }
+
   split(size = SIZE.BABY) {
     if (size > this.size) size = 0.5 * this.size; // not bigger than half
     new Cell({
       x: this.pos.x,
       y: this.pos.y,
       size: size,
-      mutation: sin(random(PI)) * 30,
+      mutation: sin(random(PI)) * 20,
       mom: this
     });
     this.addTrait(PROP.PAIN, size);
@@ -263,17 +277,5 @@ class Cell extends Drop {
       }
     }
     return point;
-  }
-
-  fire() {
-    if (!this.hasTrait(PROP.HURL)) return;
-    let shot = new Shot({
-      x: this.pos.x + this.gun.x,
-      y: this.pos.y + this.gun.y,
-      vel: this.gun,
-      shooter: this,
-    });
-    this.addTrait(PROP.HURL, -shot.size);
-    this.addTrait(PROP.SEED, -shot.size);
   }
 }
