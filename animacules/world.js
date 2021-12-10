@@ -14,7 +14,7 @@ const LINK = {
 }
 
 const COPY = {
-  title: 'animacules',
+  title: 'animalcules',
   tagline: 'by Lenino',
   credits: `Created by ${LINK.lenino} using ${LINK.p5}, ${LINK.ml5} and ${LINK.DOM}.`,
   goodJob: 'Good job!',
