@@ -4,11 +4,20 @@ class Shot extends Drop {
     if (!opt.vel) opt.vel = p5.Vector(0, SPEED);
     super(opt);
     this.vel = opt.vel.setMag(SHOTSPEED);
-    if (opt.shooter.hasTrait(PROP.HALO)) this.halo = true;
     if (opt.shooter.hasTrait(PROP.SEED)) this.addProp(PROP.OVUM);
+    if (opt.shooter.hasTrait(PROP.HALO)) this.halo = true;
+    else this.pain = 1;
+  }
+
+  update(){
+    super.update();
+    if (this.halo) {
+      this.gain = 1;
+      this.pain = 0;
+    }
   }
 
   collide(target, extend) {
-    if(super.collide(target, extend)) target.vel.add(this.vel);
+    if (super.collide(target, extend)) target.vel.add(this.vel);
   }
 }

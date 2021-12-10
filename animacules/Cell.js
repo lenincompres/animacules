@@ -33,14 +33,13 @@ class Cell extends Drop {
   }
 
   getFill() {
-    if(!this.getTrait(PROP.HIDE)) return colorSet(this.color, 0.6);
+    if (!this.getTrait(PROP.HIDE)) return colorSet(this.color, 0.6);
     let hide = min(this.getTrait(PROP.HIDE) / SIZE[TYPE.DROP], 1);
-    return colorSet(this.color, 1 - pow(hide , 0.25));
+    return colorSet(this.color, 1 - pow(hide, 0.25));
   }
 
-  getStroke(){
+  getStroke() {
     if (this.getTrait(PROP.HIDE)) return colorSet(this.color, 0.34);
-    let hide = min(this.getTrait(PROP.HIDE) / SIZE[TYPE.DROP], 1);
     return super.getStroke();
   }
 
@@ -174,8 +173,8 @@ class Cell extends Drop {
     if (this.getTrait(PROP.TAIL)) this.addTrait(PROP.TAIL, -dim);
     if (this.getTrait(PROP.HURT)) this.addTrait(PROP.HURT, -dim);
     if (this.getTrait(PROP.HIDE)) this.addTrait(PROP.HIDE, -dim);
-    if (this.getTrait(PROP.HALO)) this.addTrait(PROP.HALO, -dim);
     if (this.getTrait(PROP.SEED)) this.addTrait(PROP.SEED, -dim);
+    if (this.getTrait(PROP.HALO)) this.addTrait(PROP.HALO, -0.5 * dim);
     //Reproduction
     if (this.getTrait(PROP.SEED) && this.getTrait(PROP.OVUM)) {
       let minor = min(this.getTrait(PROP.SEED), this.getTrait(PROP.OVUM));
@@ -186,22 +185,22 @@ class Cell extends Drop {
     if (ovum) {
       this.size += dim * 0.5;
       this.addTrait(PROP.OVUM, dim);
-      if (this.size <= SIZE.BABY) this.removeTrait(PROP.OVUM);
+      if (this.size <= 1.5 * SIZE.BABY) this.removeTrait(PROP.OVUM);
       else if (ovum >= SIZE.BABY) this.split();
     }
   }
 
-  isTouching(target, extend) {
-    if(!target.hasAgency) return super.isTouching(target, extend);
-    if(this.hasTrait(PROP.HIDE) || target.hasTrait(PROP.HIDE)) return;
-    return super.isTouching(target, extend);
+  isTouching(target) {
+    if (!target.hasAgency) return super.isTouching(target);
+    if (this.hasTrait(PROP.HIDE) || target.hasTrait(PROP.HIDE)) return;
+    return super.isTouching(target, this.thorn);
   }
 
   reach(targets = []) {
     if (!targets.length) return;
-    let target = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o, false);
-    if (target) this.acc = p5.Vector.sub(target.pos, this.pos);
-    else this.acc.mult(0.68);
+    let target = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
+    if(!target) return this.acc.mult(0.68);
+    this.acc = p5.Vector.sub(target.pos, this.pos);
   }
 
   target(targets = []) {
@@ -212,15 +211,16 @@ class Cell extends Drop {
     this.bullseye = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
   }
 
-  split() {
+  split(size = SIZE.BABY) {
+    if(size > this.size) size = 0.5 * this.size; // not bigger than half
     new Cell({
       x: this.pos.x,
       y: this.pos.y,
-      size: SIZE.BABY,
-      mutation: sin(random(PI)) * 20,
+      size: size,
+      mutation: sin(random(PI)) * 30,
       mom: this
     });
-    this.addTrait(PROP.PAIN, SIZE.BABY * 0.5);
+    this.addTrait(PROP.PAIN, size);
     this.removeTrait(PROP.OVUM);
   }
 
@@ -229,38 +229,38 @@ class Cell extends Drop {
     mom = this,
     dad
   }) {
-    this.color = colorAdd(mom._color, {
-      h: mutation
-    });
+    this.color = colorAdd(mom._color, mutation, 'h');
   }
 
-  collide(target) {
-    if (this.done) return;
-    if (target === this) return;
-    let colVect = super.collide(target, this.thorn);
-    if (!colVect) return;
+  handleCollision(point, target) {
+    super.handleCollision(point, target);
     let maxBite = SIZE[TYPE.DROP];
     let eat = min(maxBite, target.size);
     if (target.gain) {
       let gain = eat * target.gain;
       this.addTrait(PROP.GAIN, gain);
+      this.addTrait(PROP.PAIN, -gain);
     }
     if (target.pain) {
+      console.log(target.pain);
       let pain = eat * target.pain;
       this.addTrait(PROP.PAIN, pain);
-      this.vel.mult(map(pain / maxBite, 0, 1, 1, -0.5));
+      this.vel.mult(map(pain / maxBite, 0, 1, 1, -1)); //recoil
     }
     if (!target.hasAgency) {
-      this.vel.add(target.vel.mult(maxBite/this.size));
-      if (eat >= target.size) target.props.forEach(time => this.addTrait(time, target.size));
-      target.size -= eat;
+      let done = (eat >= target.size);
+      if (done) {
+        this.vel.add(target.vel.mult(4 * eat / this.size));
+        target.props.forEach(time => this.addTrait(time, target.size));
+        target.size -= eat;
+      }
     } else {
       if (this.hasTrait(PROP.HURT)) {
         let hurt = min(this.getTrait(PROP.HURT), SIZE[TYPE.DROP]);
         this.addTrait(PROP.HURT, -hurt);
         hurt *= 2;
         target.addTrait(this.hasTrait(PROP.HALO) ? PROP.GAIN : PROP.PAIN, hurt);
-        target.vel.add(p5.Vector.sub(target.pos, colVect).setMag(sqrt(hurt / SIZE[TYPE.DOT])));
+        target.vel.add(p5.Vector.sub(target.pos, point).setMag(sqrt(hurt / SIZE[TYPE.DOT])));
       }
       if (this.hasTrait(PROP.SEED)) {
         let seed = min(this.getTrait(PROP.SEED), SIZE[TYPE.DROP]);
@@ -268,7 +268,7 @@ class Cell extends Drop {
         this.addTrait(PROP.SEED, -seed);
       }
     }
-    return colVect;
+    return point;
   }
 
   fire() {
@@ -277,7 +277,7 @@ class Cell extends Drop {
       x: this.pos.x + this.gun.x,
       y: this.pos.y + this.gun.y,
       vel: this.gun,
-      shooter: this
+      shooter: this,
     });
     this.addTrait(PROP.HURL, -shot.size);
     this.addTrait(PROP.SEED, -shot.size);

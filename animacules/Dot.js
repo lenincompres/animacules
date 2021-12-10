@@ -78,8 +78,7 @@ class Dot {
     this.pos.add(this.vel);
     this.vel.add(this.acc);
     this.vel.mult(world.frix);
-    if(this.vel.mag() < 0.1) this.vel.setMag(0);
-    this.collitions = [];
+    if (this.vel.mag()) this.ang = vectorAng(this.vel);
     if (this.pos.x < this.radius || this.pos.x > world.w - this.radius) {
       this.vel.x *= -1;
       this.acc.x *= -1;
@@ -91,30 +90,29 @@ class Dot {
       this.pos.y = constrain(this.pos.y, this.radius, world.h - this.radius);
     }
     if (this.size < 1) this.done = true;
-    // handle fast things like bullets for multiple hit points
+    this.collitions = [];
     this.positions = [this.pos];
-    if (p5.Vector.sub(this.pos, this.lastPos).mag() > MAXLENGTH) return;
+    if (p5.Vector.dist(this.pos, this.lastPos) > MAXLENGTH) return;
     let diff = vectorClone(this.vel);
     let inc = floor(diff.mag() / MAXLENGTH);
     diff.setMag(MAXLENGTH);
-    this.positions = new Array(inc).fill(1).map((v, i) => p5.Vector.add(this.lastPos, diff.setMag(MAXLENGTH * i)));
+    this.positions = new Array(inc).fill().map((v, i) => p5.Vector.add(this.lastPos, diff.setMag(MAXLENGTH * i)));
   }
 
   isTouching(target, extend = 0) {
     if (this.done) return;
-    let hit = false;
+    let touching = false;
     let minDist = this.radius + target.radius + extend
-    // these should always contain the pos
+    // these should always contain the pos check all possible points
     if (!this.positions.length) this.positions = [this.pos];
     if (!target.positions.length) target.positions = [target.pos];
-    // check all possible points
-    this.positions.forEach(p => {
-      if (!hit) hit = target.pos.dist(p) <= minDist;
+    this.positions.forEach(pos => {
+      if (!touching) touching = target.pos.dist(pos) <= minDist;
     });
-    if (!hit) target.positions.forEach(p => {
-      if (!hit) hit = this.pos.dist(p) <= minDist;
+    if (!touching) target.positions.forEach(pos => {
+      if (!touching) touching = this.pos.dist(pos) <= minDist;
     });
-    if (!hit) return;
+    if (!touching) return;
     //return the toaching point
     return p5.Vector.add(target.pos, this.pos).mult(0.5);
   }
@@ -127,7 +125,6 @@ class Dot {
     if (!touchPoint) return;
     this.handleCollision(touchPoint, target);
     target.handleCollision(touchPoint, this);
-    return true;
   }
 
   handleCollision(point, target) {

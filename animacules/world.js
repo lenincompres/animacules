@@ -34,7 +34,7 @@ const COPY = {
   ESP: {
     title: 'animalucos',
     credits: `Creado por ${LINK.lenino} usando ${LINK.p5}, ${LINK.ml5} y ${LINK.DOM}.`,
-    goodJob: '¡Buen trabajo!',
+    goodJob: '¡Bien hecho!',
     menu: {
       language: 'lenguaje',
       controls: 'control',
@@ -52,8 +52,8 @@ const WORLD = {
   w: 800,
   h: 600,
   frix: 0.9,
-  droprate: 50,
-  dropcap: 1,
+  droprate: 1,
+  dropcap: 2,
   heat: 1
 }
 WORLD.w2 = WORLD.w * 0.5;
@@ -73,7 +73,7 @@ const COLOR = {
   PALE: 'lightskyblue',
   DIM: 'steelblue',
   DARK: '#060501',
-  YES: 'lawngreen',
+  YES: 'lime',
   HOT: 'gold',
   NOT: 'red',
 };
@@ -86,14 +86,14 @@ COLOR[TYPE.PEARL] = COLOR.PALE;
 const LINEWEIGHT = WORLD.w * WORLD.h / 200000;
 const MAXLENGTH = 10 * LINEWEIGHT;
 const SPEED = 4 * LINEWEIGHT / FRAMERATE;
-const SHOTSPEED = 150 * SPEED;
+const SHOTSPEED = 100 * SPEED;
 
 const SIZE = {};
 SIZE[TYPE.DOT] = 20 * LINEWEIGHT;
 SIZE[TYPE.SHOT] = 2 * SIZE[TYPE.DOT];
-SIZE[TYPE.DROP] = 5 * SIZE[TYPE.DOT];
-SIZE[TYPE.CELL] = 10 * SIZE[TYPE.DROP];
-SIZE[TYPE.PEARL] = 10 * SIZE[TYPE.DROP];
+SIZE[TYPE.DROP] = 6 * SIZE[TYPE.DOT];
+SIZE[TYPE.CELL] = 8 * SIZE[TYPE.DROP];
+SIZE[TYPE.PEARL] = SIZE[TYPE.CELL]
 SIZE.BABY = 4 * SIZE[TYPE.DROP];
 SIZE.MAX = 4 * SIZE[TYPE.CELL];
 

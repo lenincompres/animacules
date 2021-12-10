@@ -4,6 +4,7 @@ PENDING:
 - Add sounds
 
 BUGS:
+- tail drops not moving
 - others are not seeding pearl upon bumping
 
 IDEAS:

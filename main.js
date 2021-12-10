@@ -1,31 +1,47 @@
 // Video
-let video;
-let poses = [];
+
+
+function loadLevel(level) {
+  console.log('loadLevel URL', level);
+  loadLevelHere(level);
+  //  window.location.src = `?level=${level}&language=${language}&control=${control}`
+}
 
 let levelTime = 1;
-let currentLevel = 0;
 let pointer;
 let pearl;
 let cells = [];
 let drops = [];
 let world = WORLD;
 let pause = false;
+let goalMet = false;
 let showInfo = false;
 const dayTime = new Binder(0);
+const heat = new Binder(1);
+const copyText = new Binder(COPY);
+
+function getLevelText(tag) {
+  return world[language] ? world[language][tag] : world[tag];
+}
+
+// poseNet
+let video;
+let poses = [];
 
 // Teachable Machine model URL:
 let classifier;
 let soundModel = 'https://teachablemachine.withgoogle.com/models/_WKomoh3c/';
 
+/* P5 and DOM */
+const QS = DOM.querystring();
+let currentLevel = QS.level ? QS.level : 0;
+let language = QS.language ? QS.language : 'ENG';
+let control = QS.control ? QS.control : CONTROL.DEFAULT;
+setLanguage(language);
+
 function preload() {
   classifier = ml5.soundClassifier(soundModel + 'model.json');
 }
-
-// binders
-let lang = 'ENG';
-let control = CONTROL.DEFAULT;
-let timelineWeight = 2 * LINEWEIGHT + 'pt';
-const copy = new Binder(COPY);
 
 function setup() {
   DOM.style({
@@ -35,10 +51,16 @@ function setup() {
     },
     b: {
       color: COLOR.YES,
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+    },
+    b_indigo: {
+      color: 'cornflowerblue',
+    },
+    b_violet: {
+      color: 'mediumorchid',
     },
     i: {
-      color: COLOR.BRIGHT
+      color: COLOR.NOT
     },
     small: {
       textTransform: 'uppercase',
@@ -72,7 +94,7 @@ function setup() {
       after: {
         content: '": "'
       }
-    }
+    },
   });
 
   DOM.set({
@@ -90,9 +112,12 @@ function setup() {
     fontFamily: 'main',
     textAlign: 'center',
     header: {
+      position: 'relative',
+      zIndex: 1,
       h1: {
         fontSize: '3em',
-        text: copy.bind(c => c.title)
+        text: copyText.bind(c => c.title),
+        onclick: e => window.location.href = './'
       },
       p: {
         fontSize: '1.25em',
@@ -133,15 +158,16 @@ function setup() {
           top: 0,
           margin: '1em',
         }, {
-          position: 'absolute',
+          position: 'fixed',
           background: COLOR.HOT,
-          width: '2em',
-          height: '2em',
+          width: heat.bind(val => val * MAXLENGTH + 'pt'),
+          height: heat.bind(val => val * MAXLENGTH + 'pt'),
+          zIndex: 0,
           borderRadius: '100%',
           left: dayTime.bind(val => val + '%'),
           display: dayTime.bind(val => val ? 'block' : 'none'),
           top: 0,
-          margin: '-1em',
+          margin: heat.bind(val => -0.34 * val * MAXLENGTH + 'pt'),
           boxShadow: `0 0 2em ${COLOR.HOT}`
         }]
       },
@@ -152,7 +178,7 @@ function setup() {
           placeContent: 'center',
           li: [{
               label: {
-                text: copy.bind(c => c.menu.language)
+                text: copyText.bind(c => c.menu.language)
               },
               select: {
                 option: Object.entries(COPY.languages).map(([key, value]) => new Object({
@@ -163,11 +189,10 @@ function setup() {
               }
             }, {
               label: {
-                text: copy.bind(c => c.menu.controls)
+                text: copyText.bind(c => c.menu.controls)
               },
               select: {
-                content: copy.bind(c => {
-                  control = CONTROL.DEFAULT;
+                content: copyText.bind(c => {
                   return {
                     option: Object.values(CONTROL).map((value) => new Object({
                       text: c.controls[value],
@@ -175,13 +200,13 @@ function setup() {
                     }))
                   }
                 }),
-                onchange: e => control = e.target.value,
-                onready: elt => control = elt.value
+                value: control,
+                onchange: e => control = e.target.value
               }
             },
             {
               label: {
-                text: copy.bind(c => c.menu.chapter)
+                text: copyText.bind(c => c.menu.chapter)
               },
               select: {
                 id: 'levelSelect',
@@ -202,7 +227,7 @@ function setup() {
       bottom: 0,
       padding: '0.5em 1em',
       p: {
-        content: copy.bind(c => c.credits)
+        content: copyText.bind(c => c.credits)
       }
     }
   });
@@ -219,22 +244,19 @@ function setup() {
 
   frameRate(FRAMERATE);
   pointer = createVector(WORLD.w2, WORLD.h2);
-  loadLevel(0);
+  loadLevelHere(currentLevel);
 }
 
 function setLanguage(l) {
-  lang = l;
-  copy.value = lang === 'ENG' ? COPY : COPY[lang];
-  loadLevel(currentLevel);
+  language = l;
+  copyText.value = language === 'ENG' ? COPY : COPY[language];
+  if (pearl) loadLevel(currentLevel);
 }
 
-function loadLevel(level = 0) {
+function loadLevelHere(level = 0) {
   level = parseInt(level);
   if (level < 0) level = 0;
-  if (!worlds[level]) return setPrompt({
-    h2: "All done!",
-    p: "That was the last level."
-  });
+  if (!worlds[level]) return;
 
   pause = true;
   // reinitiate variables
@@ -245,6 +267,7 @@ function loadLevel(level = 0) {
   pearl = new Cell({
     x: world.w2,
     y: world.h2,
+    size: world.size,
     type: TYPE.PEARL,
     props: [PROP.TAIL],
     speed: SPEED * 1.68
@@ -252,21 +275,22 @@ function loadLevel(level = 0) {
   // add level items
   if (world.drops) world.drops.forEach(opt => new Drop(opt));
   if (world.cells) world.cells.forEach((opt, i) => {
-    opt.mutation = i * 20;
+    opt.mutation = i * 30;
     new Cell(opt);
   });
-  let title = world[lang] ? world[lang].title : world.title;
-  let tagline = world[lang] ? world[lang].tagline : world.tagline;
-  setPrompt({
+  let title = getLevelText('title');
+  prompt({
     h2: title,
-    p: tagline
+    p: getLevelText('tagline')
   });
-  levelTitle.set(`${copy.value.menu.chapter} ${level+1} — ${title}`);
+  levelTitle.set(`${copyText.value.menu.chapter} ${level+1} — ${title}`);
   // start level
   currentLevel = level;
   levelSelect.value = level;
   levelTime = 1;
+  goalMet = false;
   dayTime.value = 0;
+  heat.value = world.heat;
   pause = false;
 }
 
@@ -287,8 +311,8 @@ function draw() {
   push();
   noStroke();
   fill(colorSet(0, {
-    r: world.heat * 10,
-    g: world.heat * 5,
+    r: heat.value * 10,
+    g: heat.value * 5,
     a: 0.86
   }));
   rect(0, 0, WORLD.w, WORLD.h);
@@ -337,15 +361,21 @@ function draw() {
   });
 
   //adding food
-  if (world.droprate && !(levelTime % world.droprate)) addFood();
+  if (world.droprate && !((levelTime/ world.droprate) % FRAMERATE)) addDrop();
 
   // possible game endings
   if (pearl.done) gameOver();
-  else if (world.goal) {
-    if (world.goal.size && pearl.size >= world.goal.size) nextLevel();
-    if (world.goal.levelTime) {
-      if (levelTime > world.goal.levelTime * FRAMERATE) nextLevel();
-      dayTime.value = 100 * (levelTime / FRAMERATE) / world.goal.levelTime;
+  else if (!goalMet && world.goal) {
+    if (world.goal.size && pearl.size >= world.goal.size) {
+      nextLevel();
+      goalMet = true;
+    }
+    if (world.goal.time) {
+      if (levelTime > world.goal.time * FRAMERATE) {
+        nextLevel();
+        goalMet = true;
+      }
+      dayTime.value = 100 * (levelTime / FRAMERATE) / world.goal.time;
     }
   }
 
@@ -367,11 +397,11 @@ function mouseClicked() {
   pearl.fire();
 }
 
-function addFood(props = []) {
+function addDrop(props = []) {
   if (typeof world.dropcap !== 'number') return;
   let cap = world.dropcap * SIZE[TYPE.DROP];
-  let food = drops.length ? drops.reduce((o, a) => o += a.size, 0) : 0;
-  if (food >= cap) return;
+  let food = drops.reduce((o, a) => o += a.size, 0);
+  if (food > cap - SIZE[TYPE.DROP]) return;
   if (world.rate) Object.values(PROP).forEach(prop => {
     let rate = world.rate[prop];
     if (!rate) return;
@@ -422,41 +452,53 @@ function keyPressed() {
 /* prompt */
 
 function gameOver() {
-  setPrompt({
-    h2: 'Game Over',
-  });
-  setTimeout(() => loadLevel(currentLevel), 3000);
   pause = true;
+  prompt({
+    info: {
+      h2: 'Game Over',
+    },
+    callback: () => loadLevel(currentLevel),
+    close: 3
+  });
 }
 
 function nextLevel() {
-  setPrompt({
-    h4: copy.value.goodJob
-  });
-  setTimeout(() => loadLevel(currentLevel + 1), 3000);
   pause = true;
+  prompt({
+    info: {
+      h4: copyText.value.goodJob
+    },
+    callback: () => loadLevel(currentLevel + 1),
+    close: 3
+  });
 }
 
 let promptTimeout = false;
 
-function setPrompt(model, close = true) {
-  if (!model) return promptElem.set(true);
+function prompt(input) {
+  if (!input) return closePrompt();
   if (promptTimeout) clearTimeout(promptTimeout);
+  promptTimeout = false;
+  if (!input.info) input = {
+    info: input,
+    close: 5,
+  };
   promptElem.set({
-    model: model,
+    model: input.info,
     opacity: 1,
-    pointerEvents: 'all'
+    pointerEvents: input.close ? 'none' : 'all'
   }, true);
-  if (close) promptTimeout = setTimeout(closePrompt, 5000);
+  if (input.close) promptTimeout = setTimeout(() => closePrompt(input.callback), input.close * 1000);
 }
 
 function closePrompt(callback) {
   if (promptTimeout) clearTimeout(promptTimeout);
+  promptTimeout = false;
   promptElem.set({
     pointerEvents: 'none',
     opacity: 0
   });
-  if (callback) promptTimeout = setTimeout(callback, 1000);
+  if (callback) promptTimeout = setTimeout(() => callback(), 1000);
 }
 
 function drawArrow(vect, z = 5) {

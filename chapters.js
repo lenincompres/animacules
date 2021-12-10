@@ -4,56 +4,58 @@ const setRate = (prop, val) => new Object({
 });
 
 const worlds = [{
-  title: 'Hi, Pearl.',
-  tagline: 'Try moving your head about and <b>get the droplet</b>.',
+  title: 'Hi, little Pearl.',
+  tagline: 'Move your head about and get the <b>droplet</b>.',
   ESP: {
-    title: "Hola, Perla.",
-    tagline: "Intenta mover tu cabeza y <b>alcanza la gotita</b>.",
+    title: "Hola, pequeña Perla.",
+    tagline: "Mueve tu cabeza y alcanza la <b>gotita</b>.",
   },
+  size: 0.34 * SIZE[TYPE.CELL],
+  dropcap: 1,
   heat: 0,
   drops: [{
     x: WORLD.w2,
     y: WORLD.h * 0.86
   }],
   goal: {
-    size: SIZE[TYPE.CELL] + SIZE[TYPE.DROP]
+    size: 0.34 * SIZE[TYPE.CELL] + SIZE[TYPE.DROP]
   }
 }, {
   title: 'You gotta be big.',
-  tagline: "Nothing else to do but <b>eat droplets and grow</b>.",
+  tagline: "Nothing else to do but eat <b>droplets</b> and grow.",
   ESP: {
     title: "Debes ser grande.",
-    tagline: "Nada más que hacer que <b>tomar gotitas y crecer</b>.",
+    tagline: "Nada más que hacer: tomar <b>gotitas</b> y crecer.",
   },
+  size: 0.5 * SIZE[TYPE.CELL],
+  dropcap: 1,
   heat: 0,
   goal: {
-    size: SIZE[TYPE.CELL] + SIZE[TYPE.DROP] * 4
+    size: 0.5 * SIZE[TYPE.CELL] + SIZE[TYPE.DROP] * 4
   }
 }, {
-  title: "It's a hot one.",
-  tagline: 'You need to <b>eat so not to shrink</b>.',
+  title: "It's hot outside.",
+  tagline: 'You need to <b>eat</b> so not to shrink.',
   ESP: {
-    title: "Hoy hace calor.",
-    tagline: "Hay que <b>comer para no encogerse</b>.",
+    title: "Afuera hace calor.",
+    tagline: "Debes <b>comer</b> para no desaparecer.",
   },
   dropcap: 1,
-  droprate: 50,
-  heat: 2,
+  heat: 1.34,
   goal: {
     time: 30
   }
 }, {
   title: "Wave your flagella.",
-  tagline: "Tails make you <b>go faster</b>.",
+  tagline: "Limbs make you go faster.",
   ESP: {
     title: "Agita tus flagelos.",
-    tagline: "Las colas te hacen <b>ir más rápido</b>.",
+    tagline: "Las extremidades te hacen ir más rápido.",
   },
   drops: [{
     props: [PROP.TAIL]
   }],
-  heat: 2.5,
-  dropcap: 2,
+  heat: 1.5,
   rate: {
     tail: 0.4,
   },
@@ -61,13 +63,13 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "No longer alone.",
-  tagline: "You and Zapphire may <b>bumb into each other</b>.",
+  title: "You won't be alone.",
+  tagline: "You may bumb into <b class='indigo'>Sapphire<b>.",
   ESP: {
-    title: "No más a solas.",
-    tagline: "Zafiro y tú <b>pueden toparse por ahí</b>.",
+    title: "No estarás a solas.",
+    tagline: "Puedes toparte con <b class='indigo'>Zafiro</b>.",
   },
-  dropcap: 2,
+  heat: 1.5,
   cells: [{
     x: 0,
     y: WORLD.h
@@ -79,12 +81,12 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "Face scarcity.",
-  tagline: "Iris is here too. But, there's only <b>two droplets at any time</b>.",
-  dropcap: 2,
+  title: "There's scarcity.",
+  tagline: "<b class='violet'>Iris</b> is here too, but we have few droplets.",
+  heat: 1.5,
   ESP: {
-    title: "Enfrenta la escasez.",
-    tagline: "Ha llegado Iris. Pero, solo hay <b>dos gotas en a la vez</b>.",
+    title: "Hay escasez.",
+    tagline: "Llegó <b class='violet'>Iris</b>, pero tenemos pocas gotas.",
   },
   cells: [{
       x: 0,
@@ -102,16 +104,15 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "Ow! That hurts!",
-  tagline: "You may sprout thorns and <b>hurt each other</b>.",
+  title: "Ouch!",
+  tagline: "When thorns sprout, you get <i>hurt</i>.",
   ESP: {
-    title: "¡Ay! ¡Eso duele!",
-    tagline: "Pueden brotar espinas y <b>lastimarse entre sí</b>.",
+    title: "¡Ay!",
+    tagline: "Si brotan espinas, os haréis <i>daño</i>.",
   },
   drops: [{
     props: [PROP.HURT]
   }],
-  dropcap: 2,
   rate: {
     tail: 0.2,
     hurt: 0.4,
@@ -130,15 +131,14 @@ const worlds = [{
   }
 }, {
   title: "Spew unpleasantries.",
-  tagline: ["Say: <b>«Pew pew!»<b>"],
+  tagline: ["Say: <i>Pew pew!<i>"],
   ESP: {
-    title: "Se escupen las cosas.",
-    tagline: "Diciendo: <b>«¡Po, po!»</b>.",
+    title: "Se arrojan las cosas.",
+    tagline: "Diciendo: <i>¡Piu, piu!</i>.",
   },
   drops: [{
     props: [PROP.HURL]
   }],
-  dropcap: 2,
   rate: {
     tail: 0.2,
     hurt: 0.2,
@@ -158,15 +158,14 @@ const worlds = [{
   }
 }, {
   title: "Reproduction happens.",
-  tagline: "Grow steadily until <b>splitting into two</b>.",
+  tagline: "You will <b>grow</b> until you <i>split</i>.",
   ESP: {
-    title: "Acontece la reproducción.",
-    tagline: "Podrán crecer más, hasta <b>dividirse en dos</b>.",
+    title: "Llega la reproducción.",
+    tagline: "Vais a <b>crecer</b> hasta <i>dividiros</i>.",
   },
   drops: [{
     props: [PROP.OVUM]
   }],
-  dropcap: 2,
   rate: {
     tail: 0.2,
     hurt: 0.2,
@@ -186,16 +185,16 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "Provide and nurture.",
-  tagline: "A halo makes you <b>sprout and spew droplets</b>.",
+  title: "Now, nurture.",
+  tagline: "A <b>halo</b> makes you sprout and spew <b>droplets</b>.",
   ESP: {
-    title: "Provee y nutre.",
-    tagline: "Un halo te hace <b> brotar y arrojar gotitas</b>.",
+    title: "Ahora, nutre.",
+    tagline: "Un <b>halo</b> te hace brotar y arrojar <b>gotitas</b>.",
   },
   drops: [{
     props: [PROP.HALO]
   }],
-  dropcap: 2,
+  heat: 1.5,
   rate: {
     tail: 0.2,
     hurt: 0.2,
@@ -216,16 +215,15 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "A seedy reproduction",
-  tagline: "Prevents you from splitting but <b>triggers it in others</b>.",
+  title: "Seedy reproduction",
+  tagline: "Prevents your splitting but triggers it in others.",
   ESP: {
     title: "Una reproducción vil",
-    tagline: "Reduce tu división pero <b>la provoca en les demás</b>.",
+    tagline: "Reduce tu división pera la provoca en otros.",
   },
   drops: [{
     props: [PROP.SEED]
   }],
-  dropcap: 2,
   rate: {
     tail: 0.2,
     hurt: 0.2,
@@ -247,13 +245,12 @@ const worlds = [{
     time: 30
   }
 }, {
-  title: "And lastly, disembodiment.",
-  tagline: "You will <b>not be seen or touched</b>.",
+  title: "Lastly, disembodiment.",
+  tagline: "You will not be seen or touched.",
   ESP: {
-    title: "Al fin, incorporeidad.",
-    tagline: "El resto <b>No podrá verte ni tocarte</b>.",
+    title: "Para terminar, incorporeidad.",
+    tagline: "No podrán verte ni tocarte.",
   },
-  dropcap: 4,
   drops: [{
     props: [PROP.HIDE]
   }],
@@ -264,7 +261,7 @@ const worlds = [{
     ovum: 0.2,
     halo: 0.2,
     seed: 0.2,
-    HIDE: 0.4,
+    hide: 0.4,
   },
   cells: [{
       x: 0,
@@ -280,8 +277,11 @@ const worlds = [{
   }
 }, {
   title: "Have Fun.",
-  tagline: "There's <b>no time limit</b>, just survival.",
-  dropcap: 4,
+  tagline: "There's no time limit, just survival.",
+  ESP: {
+    title: "¡Diviértete!",
+    tagline: "No hay tiempo límite, solo rupervivencia.",
+  },
   rate: {
     tail: 0.2,
     hurt: 0.2,
@@ -289,7 +289,7 @@ const worlds = [{
     ovum: 0.2,
     halo: 0.2,
     seed: 0.2,
-    HIDE: 0.2,
+    hide: 0.2,
   },
   cells: [{
       x: 0,
