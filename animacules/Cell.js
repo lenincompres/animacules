@@ -23,7 +23,7 @@ class Cell extends Drop {
   get color() {
     let r = this.getTrait(PROP.PAIN);
     let g = this.getTrait(PROP.GAIN);
-    let b = 0; //this.getTrait(PROP.HIDE);
+    let b = this.getTrait(PROP.SICK);
     let colour = colorAdd(this._color, {
       r: r - (g + b) * 0.5,
       g: g - (r + b) * 0.5,
@@ -186,8 +186,8 @@ class Cell extends Drop {
     if (ovum) {
       this.size += dim;
       this.addTrait(PROP.OVUM, dim);
-      if (this.size <= 1.5 * SIZE.BABY) this.removeTrait(PROP.OVUM);
-      else if (ovum >= SIZE.BABY) this.split();
+      if (this.size <= SIZE.BABY) this.removeTrait(PROP.OVUM); 
+      if (ovum >= SIZE.BABY) this.split();
     }
   }
 
@@ -224,8 +224,8 @@ class Cell extends Drop {
     this.addTrait(PROP.SEED, -shot.size);
   }
 
-  split(size = SIZE.BABY) {
-    if (size > this.size) size = 0.5 * this.size; // not bigger than half
+  split(size) {
+    if (!size) size = 0.42 * this.size; // not bigger than half
     new Cell({
       x: this.pos.x,
       y: this.pos.y,

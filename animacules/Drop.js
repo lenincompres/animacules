@@ -46,9 +46,9 @@ class Drop extends Dot {
 
   get color() {
     return colorSet(this._color, {
-      r: 255 * (this.pain - min(0, this.gain) - this.sick * 0.5),
-      g: 255 * (max(0, this.gain) - this.pain - this.sick * 0.5),
-      b: 255 * this.sick,
+      r: 255 * (this.pain - min(0, this.gain)),
+      g: 255 * (max(0, this.gain) - this.pain),
+      b: 255 * this.sick * (this.age / FRAMERATE),
     });
   }
 
