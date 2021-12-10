@@ -166,10 +166,9 @@ class Cell extends Drop {
     super.update();
     this.acc.limit(this.speed);
     // reduce traits
-    let sec = 6 / FRAMERATE;
     let dim = SIZE[TYPE.DROP] / FRAMERATE / 5;
-    if (this.getTrait(PROP.GAIN)) this.size -= this.incTrait(PROP.GAIN, -sec);
-    if (this.getTrait(PROP.PAIN)) this.size += this.incTrait(PROP.PAIN, -sec);
+    if (this.getTrait(PROP.GAIN)) this.size -= this.incTrait(PROP.GAIN, -0.2 * dim);
+    if (this.getTrait(PROP.PAIN)) this.size += this.incTrait(PROP.PAIN, -0.2 * dim);
     if (this.getTrait(PROP.TAIL)) this.addTrait(PROP.TAIL, -dim);
     if (this.getTrait(PROP.HURT)) this.addTrait(PROP.HURT, -dim);
     if (this.getTrait(PROP.HIDE)) this.addTrait(PROP.HIDE, -dim);

@@ -1,6 +1,6 @@
 // Video
 function loadLevel(level) {
-  if(!chapters[level]) return loadLevel(currentLevel);
+  if (!chapters[level]) return loadLevel(currentLevel);
   window.location.href = `?level=${level}&language=${language}&control=${control}`
 }
 
@@ -127,7 +127,7 @@ function setup() {
     },
     section: {
       width: world.w + 'px',
-      margin: '0.5em auto ',
+      margin: '0 auto ',
       main: {
         position: 'relative',
         width: world.w + 'px',
@@ -171,64 +171,60 @@ function setup() {
           boxShadow: `0 0 2em ${COLOR.HOT}`
         }]
       },
-      menu: {
-        margin: '0 0 0.5em',
-        ul: {
-          display: 'flex',
-          placeContent: 'center',
-          li: [{
-              label: {
-                text: copyText.bind(c => c.menu.language)
+      footer: {
+        menu: {
+          marginBottom: '0.34em',
+          ul: {
+            display: 'flex',
+            placeContent: 'center',
+            li: [{
+                label: {
+                  text: copyText.bind(c => c.menu.language)
+                },
+                select: {
+                  option: Object.entries(COPY.languages).map(([key, value]) => new Object({
+                    text: value,
+                    value: key,
+                  })),
+                  onchange: e => setLanguage(e.target.value)
+                }
+              }, {
+                label: {
+                  text: copyText.bind(c => c.menu.controls)
+                },
+                select: {
+                  content: copyText.bind(c => {
+                    return {
+                      option: Object.values(CONTROL).map((value) => new Object({
+                        text: c.controls[value],
+                        value: value,
+                      }))
+                    }
+                  }),
+                  value: control,
+                  onchange: e => control = e.target.value
+                }
               },
-              select: {
-                option: Object.entries(COPY.languages).map(([key, value]) => new Object({
-                  text: value,
-                  value: key,
-                })),
-                onchange: e => setLanguage(e.target.value)
+              {
+                label: {
+                  text: copyText.bind(c => c.menu.chapter)
+                },
+                select: {
+                  id: 'levelSelect',
+                  onchange: e => loadLevel(e.target.value),
+                  option: chapters.map((w, i) => new Object({
+                    text: i + 1,
+                    value: i
+                  }))
+                }
               }
-            }, {
-              label: {
-                text: copyText.bind(c => c.menu.controls)
-              },
-              select: {
-                content: copyText.bind(c => {
-                  return {
-                    option: Object.values(CONTROL).map((value) => new Object({
-                      text: c.controls[value],
-                      value: value,
-                    }))
-                  }
-                }),
-                value: control,
-                onchange: e => control = e.target.value
-              }
-            },
-            {
-              label: {
-                text: copyText.bind(c => c.menu.chapter)
-              },
-              select: {
-                id: 'levelSelect',
-                onchange: e => loadLevel(e.target.value),
-                option: chapters.map((w, i) => new Object({
-                  text: i + 1,
-                  value: i
-                }))
-              }
-            }
-          ]
-        }
-      }
-    },
-    footer: {
-      width: '100%',
-      position: 'fixed',
-      bottom: 0,
-      padding: '0.5em 1em',
-      p: {
-        content: copyText.bind(c => c.credits)
-      }
+            ]
+          }
+        },
+          p: {
+            content: copyText.bind(c => c.credits)
+          }
+      },
     }
   });
 
@@ -361,7 +357,7 @@ function draw() {
   });
 
   //adding food
-  if (world.droprate && !(levelTime % round(FRAMERATE / world.droprate))) 
+  if (world.droprate && !(levelTime % round(FRAMERATE / world.droprate)))
     addDrop();
 
   // possible game endings
