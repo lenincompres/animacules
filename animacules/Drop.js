@@ -2,7 +2,7 @@ class Drop extends Dot {
   constructor(opt = {}) {
     if (!opt.type) opt.type = TYPE.DROP;
     super(opt);
-    this.dew = 0.5;
+    this.dew = 0.62;
     this.props = opt.props ? opt.props : [];
     this.velFactor = 0.25;
     this.ang = random(TWO_PI);
@@ -48,7 +48,6 @@ class Drop extends Dot {
     return colorSet(this._color, {
       r: 255 * (this.pain - min(0, this.gain)),
       g: 255 * (max(0, this.gain) - this.pain),
-      b: 255 * this.sick * (this.age / FRAMERATE),
     });
   }
 
@@ -57,41 +56,57 @@ class Drop extends Dot {
   }
 
   getFill() {
-    if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.17);
+    if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.16);
     return super.getFill();
   }
 
   getStroke() {
-    if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.34);
+    if (this.hasProp(PROP.HIDE)) return colorSet(this.color, 0.31);
     return super.getStroke();
   }
 
   draw() {
     super.draw();
     if (this.hasProp(PROP.OVUM)) this.drawOvum();
-    if (this.hasProp(PROP.SEED)) this.drawSeed();
+    if (this.hasProp(PROP.SEED)) this.drawSeed({});
     if (this.hasProp(PROP.HALO)) this.drawHalo();
     if (this.hasProp(PROP.TAIL)) this.drawTail();
     if (this.hasProp(PROP.HURL)) this.drawHurl();
     if (this.hasProp(PROP.HURT)) this.drawHurt();
+    if (this.hasProp(PROP.SICK)) this.drawSick();
   }
 
-  drawTail(lenFactor = 1, ang = 0) {
+  drawTail(lenFactor = 1) {
     lenFactor = min(lenFactor, 1);
     this.inDraw(() => {
       noFill();
-      rotate(PI + vectorAng(this.acc) + ang);
-      translate(this.radius, 0);
+      rotate(PI + vectorAng(this.acc));
       let len = this.radius * lenFactor;
-      let swing = len * sin(15 * frameCount / FRAMERATE) * 0.34;
-      beginShape();
-      curveVertex(0, 0);
-      curveVertex(0, 0);
-      curveVertex(len * 0.5, swing * 0.5);
-      curveVertex(len, -swing);
-      curveVertex(len, -swing);
-      endShape();
+      let sway = len * sin(15 * this.age / FRAMERATE) * 0.31;
+      this.drawFlag(len, sway);
     });
+  }
+
+  drawWings(lenFactor = 1) {
+    lenFactor = min(lenFactor);
+    this.inDraw(() => {
+      let len = this.radius * lenFactor;
+      let sway = len * sin(15 * this.age / FRAMERATE) * 0.31;
+      rotate(HALF_PI + vectorAng(this.acc));
+      this.drawFlag(len, sway);
+      rotate(PI);
+      this.drawFlag(len, -sway);
+    });
+  }
+
+  drawFlag(len, sway) {
+    beginShape();
+    curveVertex(this.radius, 0);
+    curveVertex(this.radius, 0);
+    curveVertex(this.radius + len * 0.5, sway * 0.37);
+    curveVertex(this.radius + len, -sway);
+    curveVertex(this.radius + len, -sway);
+    endShape();
   }
 
   drawHurt(thorn, colour) {
@@ -100,15 +115,15 @@ class Drop extends Dot {
       if (colour) {
         stroke(colour);
         strokeWeight(min(thorn + 1, LINEWEIGHT * 3));
-        this.drawAround(this.radius + thorn);
+        this.drawThorns(this.radius + thorn);
       }
       stroke(this.color);
       strokeWeight(LINEWEIGHT);
-      this.drawAround(this.radius, thorn);
+      this.drawThorns(this.radius, thorn);
     });
   }
 
-  drawAround(dist = 0, len = 0, n = 6) {
+  drawThorns(dist = 0, len = 0, n = 6) {
     let delta = PI / n;
     while (n) {
       rotate(delta);
@@ -144,7 +159,11 @@ class Drop extends Dot {
     });
   }
 
-  drawSeed(x = 0, radius = this.radius, angle = 0) {
+  drawSeed({
+    x = 0,
+    radius = this.radius,
+    angle = 0
+  }) {
     this.inDraw(() => {
       radius *= 0.5;
       stroke(colorSet(this.color, -25, 'l'));
@@ -154,10 +173,25 @@ class Drop extends Dot {
     });
   }
 
+  drawSick(level = 0) {
+    this.inDraw(() => {
+      noFill();
+      let swing = 0;
+      let cutoff = SIZE[TYPE.DROP] * 0.5;
+      stroke(colorSet(COLOR.NOT));
+      if (level > cutoff) {
+        swing = (0.5 + sin(6 * this.age / FRAMERATE) / 2);
+        stroke(colorSet(COLOR.NOT, map(swing, 0, 1, 1, 0.34)));
+      }
+      strokeWeight(LINEWEIGHT * (0.62 + 6 * swing));
+      circle(0, 0, this.diam - LINEWEIGHT * 1.62);
+    });
+  }
+
   drawHalo(alpha = 1) {
     this.inDraw(() => {
       noFill();
-      strokeWeight(LINEWEIGHT * 0.68);
+      strokeWeight(LINEWEIGHT * 0.62);
       stroke(colorSet(COLOR[TYPE.DROP], alpha * colorAlpha(this.color)));
       circle(0, 0, this.diam + LINEWEIGHT * 4);
     });

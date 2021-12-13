@@ -111,7 +111,7 @@ const PROP = {
   HALO: 'halo',
   HIDE: 'hide',
   JAWS: 'jaws',
-  SICK: 'sick'
+  SICK: 'sick',
 }
 
 const SAY = {

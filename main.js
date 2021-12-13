@@ -1,8 +1,3 @@
-// Video
-function loadLevel(level) {
-  if (!chapters[level]) return loadLevel(currentLevel);
-  window.location.href = `?level=${level}&language=${language}&control=${control}`
-}
 
 let levelTime = 1;
 let pointer;
@@ -185,10 +180,10 @@ function setup() {
           height: heat.bind(val => val * MAXLENGTH + 'pt'),
           zIndex: 0,
           borderRadius: '100%',
-          left: dayTime.bind(val => val + '%'),
-          display: dayTime.bind(val => val ? 'block' : 'none'),
+          left: dayTime.bind(val => !world.goal ? '45%' : val + '%'),
+          display: dayTime.bind(val => val || !world.goal ? 'block' : 'none'),
           top: 0,
-          margin: heat.bind(val => -0.34 * val * MAXLENGTH + 'pt'),
+          margin: heat.bind(val => -0.31 * val * MAXLENGTH + 'pt'),
           boxShadow: `0 0 2em ${COLOR.HOT}`
         }]
       },
@@ -266,7 +261,7 @@ function setup() {
 
   frameRate(FRAMERATE);
   pointer = createVector(WORLD.w2, WORLD.h2);
-  loadLevelHere(currentLevel);
+  loadLevel(currentLevel, false);
 }
 
 function setLanguage(l) {
@@ -275,10 +270,12 @@ function setLanguage(l) {
   if (pearl) loadLevel(currentLevel);
 }
 
-function loadLevelHere(level = 0) {
+function loadLevel(level = 0, newURL = true) {
   level = parseInt(level);
   if (level < 0) level = 0;
-  if (!chapters[level]) return;
+
+  if (!chapters[level]) level = currentLevel;
+  if(newURL) return window.location.href = `?level=${level}&language=${language}&control=${control}`
 
   pause = true;
   // reinitiate variables
@@ -286,18 +283,15 @@ function loadLevelHere(level = 0) {
   Object.assign(world, chapters[level]);
   dots.forEach(dot => delete dot);
   dots = [];
-  pearl = new Cell({
+  pearl = new Pearl({
     x: world.w2,
     y: world.h2,
-    size: world.size,
-    type: TYPE.PEARL,
-    props: [PROP.TAIL],
-    speed: SPEED * 1.68
+    size: world.size
   });
   // add level items
   if (world.drops) world.drops.forEach(opt => new Drop(opt));
   if (world.cells) world.cells.forEach((opt, i) => {
-    opt.mutation = i * 30;
+    opt.mutation = i * 37;
     new Cell(opt);
   });
   let title = getLevelText('title');

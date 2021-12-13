@@ -5,6 +5,7 @@ class Shot extends Drop {
     super(opt);
     this.vel = opt.vel.setMag(SHOTSPEED);
     if (opt.shooter.hasTrait(PROP.SEED)) this.addProp(PROP.OVUM);
+    if (opt.shooter.hasTrait(PROP.SICK)) this.addProp(PROP.SICK);
     if (opt.shooter.hasTrait(PROP.HALO)) this.halo = true;
     else this.pain = 1;
   }
@@ -14,6 +15,9 @@ class Shot extends Drop {
     if (this.halo) {
       this.gain = 1;
       this.pain = 0;
+    } else {
+      this.gain = -1;
+      this.pain = -1;
     }
   }
 

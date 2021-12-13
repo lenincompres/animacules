@@ -34,7 +34,7 @@ const chapters = [{
     size: 0.5 * SIZE[TYPE.CELL] + SIZE[TYPE.DROP] * 4
   }
 }, {
-  title: "It's hot out there.",
+  title: "It's hot outside.",
   tagline: "You need to eat so not to <b class='hot'>shrink</b>.",
   ESP: {
     title: "Hace calor afuera.",
@@ -57,7 +57,7 @@ const chapters = [{
   }],
   heat: 1.5,
   rate: {
-    tail: 0.4,
+    tail: 0.3,
   },
   goal: {
     time: 30
@@ -75,7 +75,7 @@ const chapters = [{
     y: WORLD.h
   }],
   rate: {
-    tail: 0.2,
+    tail: 0.1,
   },
   goal: {
     time: 30
@@ -98,7 +98,7 @@ const chapters = [{
     }
   ],
   rate: {
-    tail: 0.2,
+    tail: 0.1,
   },
   goal: {
     time: 30
@@ -114,8 +114,8 @@ const chapters = [{
     props: [PROP.HURT]
   }],
   rate: {
-    tail: 0.2,
-    hurt: 0.4,
+    tail: 0.1,
+    hurt: 0.3,
   },
   cells: [{
       x: 0,
@@ -140,9 +140,9 @@ const chapters = [{
     props: [PROP.HURL]
   }],
   rate: {
-    tail: 0.2,
-    hurt: 0.2,
-    hurl: 0.4,
+    tail: 0.1,
+    hurt: 0.1,
+    hurl: 0.3,
   },
   cells: [{
       x: 0,
@@ -157,20 +157,49 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Add, multiply… divide.",
+  title: "Sick and contagious.",
+  tagline: "Fever, pain, dizziness, then you are immune for a while.",
+  ESP: {
+    title: "Enfermedad y contagio.",
+    tagline: "Fiebre, dolor, mareo, y luego immunidad un rato.",
+  },
+  drops: [{
+    props: [PROP.SICK]
+  }],
+  rate: {
+    tail: 0.1,
+    hurt: 0.1,
+    hurl: 0.1,
+    sick: 0.3,
+  },
+  cells: [{
+      x: 0,
+      y: WORLD.h
+    },
+    {
+      x: WORLD.w,
+      y: WORLD.h
+    }
+  ],
+  goal: {
+    time: 30
+  }
+}, {
+  title: "Add, divide… multiply.",
   tagline: "You will <b>grow</b> until you <i>split</i>.",
   ESP: {
-    title: "Suma, multiplica… divide.",
+    title: "Suma, divide… multiplica.",
     tagline: "Vais a <b>crecer</b> hasta <i>dividiros</i>.",
   },
   drops: [{
     props: [PROP.OVUM]
   }],
   rate: {
-    tail: 0.2,
-    hurt: 0.2,
-    hurl: 0.2,
-    ovum: 0.4,
+    tail: 0.1,
+    hurt: 0.1,
+    hurl: 0.1,
+    sick: 0.1,
+    ovum: 0.3,
   },
   cells: [{
       x: 0,
@@ -195,11 +224,12 @@ const chapters = [{
     props: [PROP.SEED]
   }],
   rate: {
-    tail: 0.2,
-    hurt: 0.2,
-    hurl: 0.2,
-    ovum: 0.2,
-    seed: 0.4,
+    tail: 0.1,
+    hurt: 0.1,
+    hurl: 0.1,
+    sick: 0.1,
+    ovum: 0.1,
+    seed: 0.3,
   },
   cells: [{
       x: 0,
@@ -225,12 +255,13 @@ const chapters = [{
   }],
   heat: 1.7,
   rate: {
-    tail: 0.2,
-    hurt: 0.2,
-    hurl: 0.2,
-    ovum: 0.2,
-    seed: 0.2,
-    halo: 0.4,
+    tail: 0.1,
+    hurt: 0.1,
+    hurl: 0.1,
+    sick: 0.1,
+    ovum: 0.1,
+    seed: 0.1,
+    halo: 0.3,
   },
   cells: [{
       x: 0,
@@ -256,13 +287,14 @@ const chapters = [{
     props: [PROP.HIDE]
   }],
   rate: {
-    tail: 0.2,
-    hurt: 0.2,
-    hurl: 0.2,
-    ovum: 0.2,
-    halo: 0.2,
-    seed: 0.2,
-    hide: 0.4,
+    tail: 0.1,
+    hurt: 0.1,
+    hurl: 0.1,
+    sick: 0.1,
+    ovum: 0.1,
+    halo: 0.1,
+    seed: 0.1,
+    hide: 0.3,
   },
   cells: [{
       x: 0,
@@ -277,20 +309,21 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Goodbye! Have Fun!",
+  title: "Goodbye, and have Fun!",
   tagline: "There're no limits, just survival.",
   ESP: {
     title: "¡Adiós y Diviértete!",
     tagline: "No hay límites, solo rupervivencia.",
   },
   rate: {
-    tail: 0.2,
-    hurt: 0.2,
-    hurl: 0.2,
-    ovum: 0.2,
-    halo: 0.2,
-    seed: 0.2,
-    hide: 0.2,
+    tail: 0.1,
+    hurt: 0.1,
+    hurl: 0.1,
+    sick: 0.1,
+    ovum: 0.1,
+    halo: 0.1,
+    seed: 0.1,
+    hide: 0.1,
   },
   cells: [{
       x: 0,
