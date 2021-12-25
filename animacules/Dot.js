@@ -1,3 +1,5 @@
+// a point of mass. It has kinetic information, plus size, color, etc.
+
 class Dot {
   constructor({
     x,
@@ -33,6 +35,7 @@ class Dot {
     return this._color;
   }
 
+  // size is the area of thsi circle
   set size(v) {
     this._size = v;
     this.radius = sqrt(v / PI);
@@ -52,16 +55,13 @@ class Dot {
     return this.color;
   }
 
-  getLine() {
-    return LINEWEIGHT;
-  }
-
+  // sets up the position, and drawing defaults (push and pop) to execute a drawing from the Dot
   inDraw(drawing = () => null) {
     push();
     translate(this.pos.x, this.pos.y);
     fill(this.getFill());
     stroke(this.getStroke());
-    strokeWeight(this.getLine());
+    strokeWeight(LINEWEIGHT);
     drawing();
     pop();
   }
@@ -73,23 +73,29 @@ class Dot {
 
   update() {
     if (this.done) return delete this;
+    // move
     this.lastPos = vectorClone(this.pos);
     this.pos.add(this.vel);
     this.vel.add(this.acc);
-    this.vel.mult(world.frix);
+    this.vel.mult(1 - world.frix);
+    // set direction angle
     if (this.vel.mag()) this.ang = vectorAng(this.vel);
+    // world bounderies
     if (this.pos.x < this.radius || this.pos.x > world.w - this.radius) {
       this.vel.x *= -1;
       this.acc.x *= -1;
-      this.pos.x = constrain(this.pos.x, this.radius, world.w - this.radius);
+      this.pos.x = constrain(this.pos.x, this.radius + 1, world.w - this.radius - 1);
     }
     if (this.pos.y < this.radius || this.pos.y > world.h - this.radius) {
       this.vel.y *= -1;
       this.acc.y *= -1;
-      this.pos.y = constrain(this.pos.y, this.radius, world.h - this.radius);
+      this.pos.y = constrain(this.pos.y, this.radius + 1, world.h - this.radius - 1);
     }
+    // desappearing
     if (this.size < 1) this.done = true;
+    // clear all collisions
     this.collitions = [];
+    // find all positions (given a max distance) the dot would have travelled
     this.positions = [this.pos];
     if (p5.Vector.dist(this.pos, this.lastPos) > MAXLENGTH) return;
     let diff = vectorClone(this.vel);
@@ -99,7 +105,7 @@ class Dot {
   }
 
   isTouching(target, extend = 0) {
-    if (this.done) return;
+    if (this.done || target === this) return false;
     let touching = false;
     let minDist = this.radius + target.radius + extend
     // these should always contain the pos check all possible points
@@ -111,14 +117,13 @@ class Dot {
     if (!touching) target.positions.forEach(pos => {
       if (!touching) touching = this.pos.dist(pos) <= minDist;
     });
-    if (!touching) return;
-    //return the toaching point
+    if (!touching) return false;
+    //return the toaching point (this assumes both dots are the same size; maybe should be fixed)
     return p5.Vector.add(target.pos, this.pos).mult(0.5);
   }
 
   collide(target, extend) {
-    if (this.done) return;
-    if (target === this) return;
+    if (this.done || target === this) return;
     if (this.collitions.includes(target)) return;
     let touchPoint = this.isTouching(target, extend);
     if (!touchPoint) return;

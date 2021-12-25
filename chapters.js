@@ -41,16 +41,16 @@ const chapters = [{
     tagline: "Debes comer para no <b class='hot'>desaparecer</b>.",
   },
   dropcap: 1,
-  heat: 1.34,
+  heat: 1.36,
   goal: {
     time: 30
   }
 }, {
   title: "Let's move!",
-  tagline: "Bigger limbs will make you go faster.",
+  tagline: "Limbs will make you go faster.",
   ESP: {
     title: "¡Vamos, muévete!",
-    tagline: "Las extemidades grandes te harán ir más rápido.",
+    tagline: "Las extemidades te harán ir más rápido.",
   },
   drops: [{
     props: [PROP.TAIL]
@@ -82,7 +82,7 @@ const chapters = [{
   }
 }, {
   title: "Face scarcity.",
-  tagline: "Do we have enough for <b class='violet'>Iris</b> too?",
+  tagline: "Is there enough for <b class='violet'>Iris</b> too?",
   heat: 1.6,
   ESP: {
     title: "Hay escasez.",
@@ -105,10 +105,10 @@ const chapters = [{
   }
 }, {
   title: "Be careful!",
-  tagline: "You'll get <i>hurt</i> when thorns sprout.",
+  tagline: "You may get <i>hurt</i> and hurt others.",
   ESP: {
     title: "¡Con cuidado!",
-    tagline: "Os haréis <i>daño</i> cuando broten espinas.",
+    tagline: "Os podréis hacer <i>daño</i>.",
   },
   drops: [{
     props: [PROP.HURT]
@@ -131,10 +131,10 @@ const chapters = [{
   }
 }, {
   title: "Spew unpleasantries.",
-  tagline: ["Say: <i>Pew pew!<i>"],
+  tagline: ["Say: <i>“Pew pew!”</i> to shoot."],
   ESP: {
     title: "Se arrojan cosas.",
-    tagline: "Diciendo: <i>¡Piu, piu!</i>.",
+    tagline: "Diciendo: <i>«¡Piu, piu!»</i> para disparar.",
   },
   drops: [{
     props: [PROP.HURL]
@@ -157,11 +157,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Sick and contagious.",
-  tagline: "Fever, pain, dizziness, then you are immune for a while.",
+  title: "Sickness and contagion.",
+  tagline: "Fever, dizziness, then some immunity.",
   ESP: {
     title: "Enfermedad y contagio.",
-    tagline: "Fiebre, dolor, mareo, y luego immunidad un rato.",
+    tagline: "Fiebre, mareo, y luego algo de immunidad.",
   },
   drops: [{
     props: [PROP.SICK]
@@ -189,7 +189,7 @@ const chapters = [{
   tagline: "You will <b>grow</b> until you <i>split</i>.",
   ESP: {
     title: "Suma, divide… multiplica.",
-    tagline: "Vais a <b>crecer</b> hasta <i>dividiros</i>.",
+    tagline: "<b>Crecereis</b> hasta <i>dividiros</i>.",
   },
   drops: [{
     props: [PROP.OVUM]
@@ -310,10 +310,10 @@ const chapters = [{
   }
 }, {
   title: "Goodbye, and have Fun!",
-  tagline: "There're no limits, just survival.",
+  tagline: "There's no goal, just survival.",
   ESP: {
     title: "¡Adiós y Diviértete!",
-    tagline: "No hay límites, solo rupervivencia.",
+    tagline: "No hay un fin, solo rupervivencia.",
   },
   rate: {
     tail: 0.1,

@@ -53,7 +53,7 @@ const COPY = {
 const WORLD = {
   w: 800,
   h: 600,
-  frix: 0.9,
+  frix: 0.1,
   heat: 1,
   droprate: 1, // one each second
   //dropcap: 2, //no cap means ond less than cells, down to 1

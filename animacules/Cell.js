@@ -165,7 +165,7 @@ class Cell extends Drop {
     if (sick) {
       if (sick > SIZE[TYPE.DROP] * 0.5) {
         this.addTrait(PROP.PAIN, dim);
-        this.acc.rotate(sin(6 * this.age / FRAMERATE) * HALF_PI * 0.62);
+        this.acc.rotate(sin(4 * this.age / FRAMERATE) * map(sick, SIZE[TYPE.DROP] * 0.5, SIZE[TYPE.DROP], 0, 1) * PI * 0.62);
       }
       this.addTrait(PROP.SICK, -dim);
     }
@@ -195,12 +195,14 @@ class Cell extends Drop {
     }
   }
 
+  //collision detection between this and another target
   isTouching(target) {
     if (!target.hasAgency) return super.isTouching(target);
     if (this.hasTrait(PROP.HIDE) || target.hasTrait(PROP.HIDE)) return;
     return super.isTouching(target, this.thorn);
   }
 
+  //moves towards the closets out of a list of targets
   reach(targets = []) {
     if (!targets.length) return;
     let target = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
@@ -208,10 +210,11 @@ class Cell extends Drop {
     this.acc = p5.Vector.sub(target.pos, this.pos);
   }
 
+  //selects a bullseye from a list of cells to point the gun to
   target(targets = []) {
     if (!targets.length) return;
     if (!this.hasTrait(PROP.HURL)) return;
-    targets = targets.filter(target => !target.hasTrait(PROP.HIDE) && target !== this);
+    targets = targets.filter(target => target !== this && !target.hasTrait(PROP.HIDE));
     if (!targets.length) return;
     this.bullseye = targets.reduce((o, a) => !o || this.pos.dist(a.pos) < this.pos.dist(o.pos) ? a : o);
   }
