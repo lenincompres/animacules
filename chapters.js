@@ -185,10 +185,10 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Add, divide… multiply.",
+  title: "Add, divide, multiply.",
   tagline: "You will <b>grow</b> until you <i>split</i>.",
   ESP: {
-    title: "Suma, divide… multiplica.",
+    title: "Suma, divide, multiplica.",
     tagline: "<b>Crecereis</b> hasta <i>dividiros</i>.",
   },
   drops: [{
@@ -275,7 +275,7 @@ const chapters = [{
   goal: {
     time: 30
   }
-}, {
+/*}, {
   title: "Lastly, disembodiment.",
   tagline: "You will not be seen or touched.",
   ESP: {
@@ -308,7 +308,7 @@ const chapters = [{
   goal: {
     time: 30
   }
-}, {
+*/}, {
   title: "Goodbye, and have Fun!",
   tagline: "There's no goal, just survival.",
   ESP: {
@@ -323,7 +323,7 @@ const chapters = [{
     ovum: 0.1,
     halo: 0.1,
     seed: 0.1,
-    hide: 0.1,
+    //hide: 0.1,
   },
   cells: [{
       x: 0,
