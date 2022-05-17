@@ -21,7 +21,7 @@ const chapters = [{
     size: 0.34 * SIZE[TYPE.CELL] + SIZE[TYPE.DROP]
   }
 }, {
-  title: 'You gotta be big.',
+  title: "Gotta be big.",
   tagline: "Nothing else to do but <b>eat</b> and grow.",
   ESP: {
     title: "Debes ser grande.",
@@ -46,7 +46,7 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Let's move!",
+  title: "Let's wiggle!",
   tagline: "Limbs will make you go faster.",
   ESP: {
     title: "¡Vamos, muévete!",
@@ -133,7 +133,7 @@ const chapters = [{
   title: "Spew unpleasantries.",
   tagline: ["Say: <i>“Pew pew!”</i> to shoot."],
   ESP: {
-    title: "Se arrojan cosas.",
+    title: "Ahora se arrojan cosas.",
     tagline: "Diciendo: <i>«¡Piu, piu!»</i> para disparar.",
   },
   drops: [{
@@ -157,11 +157,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Sickness and contagion.",
-  tagline: "Fever, dizziness, then some immunity.",
+  title: "Sick and contagious.",
+  tagline: "Fever, dizziness, but also immunity.",
   ESP: {
     title: "Enfermedad y contagio.",
-    tagline: "Fiebre, mareo, y luego algo de immunidad.",
+    tagline: "Fiebre, mareo, pero también immunidad.",
   },
   drops: [{
     props: [PROP.SICK]
@@ -185,11 +185,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Add, divide, multiply.",
-  tagline: "You will <b>grow</b> until you <i>split</i>.",
+  title: "Add, divide and multiply.",
+  tagline: "You will <b>grow</b> until you split.",
   ESP: {
-    title: "Suma, divide, multiplica.",
-    tagline: "<b>Crecereis</b> hasta <i>dividiros</i>.",
+    title: "Suma, divide y multiplica.",
+    tagline: "<b>Crecereis</b> hasta dividiros.",
   },
   drops: [{
     props: [PROP.OVUM]
@@ -215,9 +215,9 @@ const chapters = [{
   }
 }, {
   title: "A seedy reproduction",
-  tagline: "Reduces your splitting, and triggers it in others.",
+  tagline: "Reduces your division, but triggers it in others.",
   ESP: {
-    title: "Una reproducción vil",
+    title: "Una vil reproducción",
     tagline: "Reduce tu división y la provoca en los demás.",
   },
   drops: [{
@@ -244,11 +244,11 @@ const chapters = [{
     time: 30
   }
 }, {
-  title: "Time to nurture.",
-  tagline: "A <b>halo</b> makes you sprout and spew droplets.",
+  title: "Be a nurturer.",
+  tagline: "<b>Halos</b> makes you sprout and spew droplets.",
   ESP: {
     title: "Toca nutrir.",
-    tagline: "Un <b>halo</b> te hace brotar y arrojar gotitas.",
+    tagline: "El <b>halo</b> te hace brotar y arrojar gotitas.",
   },
   drops: [{
     props: [PROP.HALO]
@@ -310,7 +310,7 @@ const chapters = [{
   }
 */}, {
   title: "Goodbye, and have Fun!",
-  tagline: "There's no goal, just survival.",
+  tagline: "There's no goal, but survival.",
   ESP: {
     title: "¡Adiós y Diviértete!",
     tagline: "No hay un fin, solo rupervivencia.",
